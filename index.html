@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Definite Protocol - Delta-Neutral Hedge System</title>
+    <meta name="description" content="Earn stable yields of 8-50% APY while protecting your capital from market volatility through automated delta-neutral strategies on Algorand." />
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <!-- Enterprise-grade polyfills loaded before any modules -->
+    <script>
+      // Immediate Buffer polyfill to prevent any reference errors
+      if (typeof globalThis !== 'undefined' && !globalThis.Buffer) {
+        // Create a minimal Buffer polyfill for immediate availability
+        globalThis.Buffer = {
+          from: function(data) { return new Uint8Array(data); },
+          alloc: function(size) { return new Uint8Array(size); },
+          isBuffer: function(obj) { return obj instanceof Uint8Array; }
+        };
+        globalThis.global = globalThis;
+        globalThis.process = {
+          env: {},
+          browser: true,
+          version: '18.0.0',
+          platform: 'browser',
+          nextTick: function(fn) { setTimeout(fn, 0); }
+        };
+        console.log('🚀 Emergency Buffer polyfill loaded');
+      }
+    </script>
+
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

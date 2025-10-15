@@ -1,0 +1,5 @@
+pyteal==0.10.1
+py-algorand-sdk==2.6.1
+pynacl>=1.4.0
+pycryptodomex>=3.6.0
+msgpack>=1.0.0

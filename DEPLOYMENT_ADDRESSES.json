@@ -1,0 +1,118 @@
+{
+  "network": "starknet-sepolia",
+  "rpc_url": "https://starknet-sepolia.g.alchemy.com/starknet/version/rpc/v0_8/c74NJJI9JjRLdNwXjvlm9lhVJAbyJYck",
+  "deployer_address": "0x04f68Bf46Ba913a90A65C47baDb81C4060234f13b91Ccf6238e5C2460F404aA5",
+  "deployment_timestamp": "2025-10-11",
+  "contracts": {
+    "PriceOracle": {
+      "address": "0x04856ae56007722f43dc4a7d82a1b7c8fff6f24207376995db6854f030f41757",
+      "class_hash": "0x0706e20e9215cee313447a34f5f3d008dcc51a759867a83c2e401395812d4072",
+      "deployment_tx": "0x064ed7082555a97fcb6a99f29a5d620eef952f920e78bd662367c9eece37a716",
+      "constructor_args": {
+        "owner": "0x04f68Bf46Ba913a90A65C47baDb81C4060234f13b91Ccf6238e5C2460F404aA5",
+        "pragma_oracle": "0x04f68Bf46Ba913a90A65C47baDb81C4060234f13b91Ccf6238e5C2460F404aA5",
+        "ekubo_pool": "0x0",
+        "myswap_pool": "0x0",
+        "jediswap_pool": "0x0"
+      }
+    },
+    "hSTRKToken": {
+      "address": "0x03b041b0d7074032d3101b271b20fecdb2312d44e404adb0637d52979483a93e",
+      "class_hash": "0x019ef3a0c38abad5d55fad620cfab3d6fc9a752e0790722b19e6dc3560ec2507",
+      "deployment_tx": "0x05e1273732670d4511859b96e4f1bb0104fe51c0d21f63f47bd8261a94ba3342",
+      "constructor_args": {
+        "owner": "0x04f68Bf46Ba913a90A65C47baDb81C4060234f13b91Ccf6238e5C2460F404aA5",
+        "protocol_vault": "0x04f68Bf46Ba913a90A65C47baDb81C4060234f13b91Ccf6238e5C2460F404aA5"
+      },
+      "update_tx": "0x04efc46727e524887ae913801d1f5e3b0ed28357e91e24c9de25655e6c45b123",
+      "updated_vault": "0x00826891ff0947da14fbd236dea07332bd56b9a98af378b00b5c6d5a3ad066e4",
+      "note": "Initially deployed with temporary vault address, then updated via set_protocol_vault()"
+    },
+    "ProtocolVault": {
+      "address": "0x00826891ff0947da14fbd236dea07332bd56b9a98af378b00b5c6d5a3ad066e4",
+      "class_hash": "0x01227f6eb809782b3e3595526d263732c39c3a5b5dab0f7b2e0db2e621c7b2ab",
+      "declaration_tx": "0x0343e65b129ea77b867f7f89d003fda103e35dcbb3024d4227ff9654d8f6486d",
+      "deployment_tx": "0x064913cf5a42ca5fbb7178aac34f53a174c8b80bf095db62c4c00d1c24672067",
+      "constructor_args": {
+        "owner": "0x04f68Bf46Ba913a90A65C47baDb81C4060234f13b91Ccf6238e5C2460F404aA5",
+        "hstrk_token": "0x03b041b0d7074032d3101b271b20fecdb2312d44e404adb0637d52979483a93e",
+        "strk_token": "0x04718f5a0Fc34cC1AF16A1cdee98fFB20C31f5cD61D6Ab07201858f4287c938D",
+        "price_oracle": "0x04856ae56007722f43dc4a7d82a1b7c8fff6f24207376995db6854f030f41757",
+        "treasury": "0x04f68Bf46Ba913a90A65C47baDb81C4060234f13b91Ccf6238e5C2460F404aA5"
+      }
+    },
+    "RiskManager": {
+      "address": "0x04f433954e9713a6533a6c4df9d82b459cadc39db8bb18baa25c7f23b9a8ad01",
+      "class_hash": "0x05f7caa8303c41d50bb0e4d73714a89f06bad2e37a2ed9cf7e32ff5efdf23f8b",
+      "declaration_tx": "0x02b1e57054e6715b81c7bafe8626c482fe149163bce2688bf0c2b66767178e7a",
+      "deployment_tx": "0x024238aed691170e3cf6f7f0082bc978571291c40c8a5f883c83e6636593a9fd",
+      "constructor_args": {
+        "owner": "0x04f68Bf46Ba913a90A65C47baDb81C4060234f13b91Ccf6238e5C2460F404aA5",
+        "protocol_vault": "0x00826891ff0947da14fbd236dea07332bd56b9a98af378b00b5c6d5a3ad066e4",
+        "price_oracle": "0x04856ae56007722f43dc4a7d82a1b7c8fff6f24207376995db6854f030f41757"
+      }
+    },
+    "PerpetualHedge": {
+      "address": "0x024f767a6f9af8406beaac4d37c668b6ef200c40b17244fe868f0500a49f5463",
+      "class_hash": "0x079b7cc5bea1ccf5ca65366d84a62d71182f10c267ed8da8e45abbc46a74c25d",
+      "declaration_tx": "0x076018306ebcb64964cc40c63a72035d651a8aca46823b3d427da63fe6e8b50f",
+      "deployment_tx": "0x068af9eba57741b3d6aa99e8f894c939be7da4577ee095f9da0ed137d03db96d",
+      "constructor_args": {
+        "owner": "0x04f68Bf46Ba913a90A65C47baDb81C4060234f13b91Ccf6238e5C2460F404aA5",
+        "protocol_vault": "0x00826891ff0947da14fbd236dea07332bd56b9a98af378b00b5c6d5a3ad066e4",
+        "price_oracle": "0x04856ae56007722f43dc4a7d82a1b7c8fff6f24207376995db6854f030f41757"
+      }
+    },
+    "OptionsStrategy": {
+      "address": "0x0621b06f163bfe023f3c87da714cb59da1988b7e76beb95d2f81c8d946dc59c3",
+      "class_hash": "0x02923be3dc76f64e78a8b72a1ecbda76958ee269c19c6049231869db7f3079be",
+      "declaration_tx": "0x05cf7e218a15586ec6ba14a9966d7a705bed2d76e0c395a3cc00de26dfaf3bd7",
+      "deployment_tx": "0x03b17ff201dd405394db2a4a24ea993ac0728eec1c8afc62502d6c0528243794",
+      "constructor_args": {
+        "owner": "0x04f68Bf46Ba913a90A65C47baDb81C4060234f13b91Ccf6238e5C2460F404aA5",
+        "protocol_vault": "0x00826891ff0947da14fbd236dea07332bd56b9a98af378b00b5c6d5a3ad066e4",
+        "price_oracle": "0x04856ae56007722f43dc4a7d82a1b7c8fff6f24207376995db6854f030f41757"
+      }
+    },
+    "RebalancingEngine": {
+      "address": "0x07ddb8a8b1d0fd77e02bb645d22674e66844a6143acff84d7ea7f5c193b22c40",
+      "class_hash": "0x0265d00727fd750c43c98ccbbc26cb10a3d2da1294e98f7bec4cb40b350830f1",
+      "declaration_tx": "0x029dbc9b4f6f8a261bd59fbfa3e861698d88bab8593f6941dd5a8944f135f88e",
+      "deployment_tx": "0x02bc1a584c1f3a600f0f2f57431c2091d65160ef84034bd12a9d8850dac32601",
+      "constructor_args": {
+        "owner": "0x04f68Bf46Ba913a90A65C47baDb81C4060234f13b91Ccf6238e5C2460F404aA5",
+        "protocol_vault": "0x00826891ff0947da14fbd236dea07332bd56b9a98af378b00b5c6d5a3ad066e4",
+        "price_oracle": "0x04856ae56007722f43dc4a7d82a1b7c8fff6f24207376995db6854f030f41757",
+        "perpetual_hedge": "0x024f767a6f9af8406beaac4d37c668b6ef200c40b17244fe868f0500a49f5463",
+        "options_strategy": "0x0621b06f163bfe023f3c87da714cb59da1988b7e76beb95d2f81c8d946dc59c3"
+      }
+    }
+  },
+  "external_contracts": {
+    "STRK_Token": "0x04718f5a0Fc34cC1AF16A1cdee98fFB20C31f5cD61D6Ab07201858f4287c938D"
+  },
+  "deployment_notes": {
+    "circular_dependency": "hSTRKToken and ProtocolVault had circular dependency. Resolved by deploying hSTRKToken with temporary vault address, then updating via set_protocol_vault() after ProtocolVault deployment.",
+    "temporary_addresses": "PriceOracle deployed with deployer address as temporary pragma_oracle. Should be updated with real Pragma oracle address when available.",
+    "deployment_order": [
+      "1. PriceOracle",
+      "2. hSTRKToken (temp vault)",
+      "3. ProtocolVault",
+      "4. Update hSTRKToken",
+      "5. RiskManager",
+      "6. PerpetualHedge",
+      "7. OptionsStrategy",
+      "8. RebalancingEngine"
+    ]
+  },
+  "explorer_links": {
+    "PriceOracle": "https://sepolia.starkscan.co/contract/0x04856ae56007722f43dc4a7d82a1b7c8fff6f24207376995db6854f030f41757",
+    "hSTRKToken": "https://sepolia.starkscan.co/contract/0x03b041b0d7074032d3101b271b20fecdb2312d44e404adb0637d52979483a93e",
+    "ProtocolVault": "https://sepolia.starkscan.co/contract/0x00826891ff0947da14fbd236dea07332bd56b9a98af378b00b5c6d5a3ad066e4",
+    "RiskManager": "https://sepolia.starkscan.co/contract/0x04f433954e9713a6533a6c4df9d82b459cadc39db8bb18baa25c7f23b9a8ad01",
+    "PerpetualHedge": "https://sepolia.starkscan.co/contract/0x024f767a6f9af8406beaac4d37c668b6ef200c40b17244fe868f0500a49f5463",
+    "OptionsStrategy": "https://sepolia.starkscan.co/contract/0x0621b06f163bfe023f3c87da714cb59da1988b7e76beb95d2f81c8d946dc59c3",
+    "RebalancingEngine": "https://sepolia.starkscan.co/contract/0x07ddb8a8b1d0fd77e02bb645d22674e66844a6143acff84d7ea7f5c193b22c40"
+  }
+}
+

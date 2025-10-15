@@ -1,0 +1,3 @@
+WARNING: setting keystore passwords via --password is generally considered insecure, as they will be stored in your shell history or other log files.
+Not declaring class as it's already declared. Class hash:
+0x0706e20e9215cee313447a34f5f3d008dcc51a759867a83c2e401395812d4072

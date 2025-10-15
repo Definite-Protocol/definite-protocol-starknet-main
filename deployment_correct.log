@@ -1,0 +1,199 @@
+🚀 Definite Protocol - Starknet Sepolia Deployment (Correct Order)
+====================================================================
+
+📋 Configuration:
+  Deployer: 0x04f68Bf46Ba913a90A65C47baDb81C4060234f13b91Ccf6238e5C2460F404aA5
+  Network: sepolia
+  STRK Token: 0x04718f5a0Fc34cC1AF16A1cdee98fFB20C31f5cD61D6Ab07201858f4287c938D
+  starkli version: 0.3.5 (fa4f0e3)
+
+📦 Step 1: Building contracts...
+   Compiling definite_protocol v1.0.0 (/Users/mehmethayirli/Documents/GitHub/definite-protocol-starknet/contracts/cairo/Scarb.toml)
+warn: Unused import: `definite_protocol::vault::protocol_vault::Map`
+ --> /Users/mehmethayirli/Documents/GitHub/definite-protocol-starknet/contracts/cairo/src/vault/protocol_vault.cairo:3:5
+    Map, StoragePointerReadAccess, StoragePointerWriteAccess,
+    ^^^
+
+warn: Unused import: `definite_protocol::vault::protocol_vault::StoragePointerReadAccess`
+ --> /Users/mehmethayirli/Documents/GitHub/definite-protocol-starknet/contracts/cairo/src/vault/protocol_vault.cairo:3:10
+    Map, StoragePointerReadAccess, StoragePointerWriteAccess,
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warn: Unused import: `definite_protocol::vault::protocol_vault::StoragePointerWriteAccess`
+ --> /Users/mehmethayirli/Documents/GitHub/definite-protocol-starknet/contracts/cairo/src/vault/protocol_vault.cairo:3:36
+    Map, StoragePointerReadAccess, StoragePointerWriteAccess,
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warn: Unused import: `definite_protocol::vault::protocol_vault::StorageMapReadAccess`
+ --> /Users/mehmethayirli/Documents/GitHub/definite-protocol-starknet/contracts/cairo/src/vault/protocol_vault.cairo:4:5
+    StorageMapReadAccess, StorageMapWriteAccess
+    ^^^^^^^^^^^^^^^^^^^^
+
+warn: Unused import: `definite_protocol::vault::protocol_vault::StorageMapWriteAccess`
+ --> /Users/mehmethayirli/Documents/GitHub/definite-protocol-starknet/contracts/cairo/src/vault/protocol_vault.cairo:4:27
+    StorageMapReadAccess, StorageMapWriteAccess
+                          ^^^^^^^^^^^^^^^^^^^^^
+
+warn: Unused import: `definite_protocol::oracle::price_oracle::Map`
+ --> /Users/mehmethayirli/Documents/GitHub/definite-protocol-starknet/contracts/cairo/src/oracle/price_oracle.cairo:3:5
+    Map, StoragePointerReadAccess, StoragePointerWriteAccess,
+    ^^^
+
+warn: Unused import: `definite_protocol::oracle::price_oracle::StoragePointerReadAccess`
+ --> /Users/mehmethayirli/Documents/GitHub/definite-protocol-starknet/contracts/cairo/src/oracle/price_oracle.cairo:3:10
+    Map, StoragePointerReadAccess, StoragePointerWriteAccess,
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warn: Unused import: `definite_protocol::oracle::price_oracle::StoragePointerWriteAccess`
+ --> /Users/mehmethayirli/Documents/GitHub/definite-protocol-starknet/contracts/cairo/src/oracle/price_oracle.cairo:3:36
+    Map, StoragePointerReadAccess, StoragePointerWriteAccess,
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warn: Unused import: `definite_protocol::oracle::price_oracle::StorageMapReadAccess`
+ --> /Users/mehmethayirli/Documents/GitHub/definite-protocol-starknet/contracts/cairo/src/oracle/price_oracle.cairo:4:5
+    StorageMapReadAccess, StorageMapWriteAccess
+    ^^^^^^^^^^^^^^^^^^^^
+
+warn: Unused import: `definite_protocol::oracle::price_oracle::StorageMapWriteAccess`
+ --> /Users/mehmethayirli/Documents/GitHub/definite-protocol-starknet/contracts/cairo/src/oracle/price_oracle.cairo:4:27
+    StorageMapReadAccess, StorageMapWriteAccess
+                          ^^^^^^^^^^^^^^^^^^^^^
+
+warn[E0001]: Unused variable. Consider ignoring by prefixing with `_`.
+ --> /Users/mehmethayirli/Documents/GitHub/definite-protocol-starknet/contracts/cairo/src/oracle/price_oracle.cairo:234:17
+            let current_time = get_block_timestamp();
+                ^^^^^^^^^^^^
+
+warn[E0001]: Unused variable. Consider ignoring by prefixing with `_`.
+ --> /Users/mehmethayirli/Documents/GitHub/definite-protocol-starknet/contracts/cairo/src/oracle/price_oracle.cairo:253:17
+            let current_time = get_block_timestamp();
+                ^^^^^^^^^^^^
+
+warn[E0001]: Unused variable. Consider ignoring by prefixing with `_`.
+ --> /Users/mehmethayirli/Documents/GitHub/definite-protocol-starknet/contracts/cairo/src/oracle/price_oracle.cairo:389:17
+            let max_deviation = old_price * threshold_bps.into() / 10000;
+                ^^^^^^^^^^^^^
+
+warn: Unused import: `definite_protocol::risk::risk_manager::ContractAddress`
+ --> /Users/mehmethayirli/Documents/GitHub/definite-protocol-starknet/contracts/cairo/src/risk/risk_manager.cairo:1:15
+use starknet::ContractAddress;
+              ^^^^^^^^^^^^^^^
+
+warn: Unused import: `definite_protocol::risk::risk_manager::Map`
+ --> /Users/mehmethayirli/Documents/GitHub/definite-protocol-starknet/contracts/cairo/src/risk/risk_manager.cairo:3:5
+    Map, StoragePointerReadAccess, StoragePointerWriteAccess,
+    ^^^
+
+warn: Unused import: `definite_protocol::risk::risk_manager::StoragePointerReadAccess`
+ --> /Users/mehmethayirli/Documents/GitHub/definite-protocol-starknet/contracts/cairo/src/risk/risk_manager.cairo:3:10
+    Map, StoragePointerReadAccess, StoragePointerWriteAccess,
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warn: Unused import: `definite_protocol::risk::risk_manager::StoragePointerWriteAccess`
+ --> /Users/mehmethayirli/Documents/GitHub/definite-protocol-starknet/contracts/cairo/src/risk/risk_manager.cairo:3:36
+    Map, StoragePointerReadAccess, StoragePointerWriteAccess,
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warn: Unused import: `definite_protocol::risk::risk_manager::StorageMapReadAccess`
+ --> /Users/mehmethayirli/Documents/GitHub/definite-protocol-starknet/contracts/cairo/src/risk/risk_manager.cairo:4:5
+    StorageMapReadAccess, StorageMapWriteAccess
+    ^^^^^^^^^^^^^^^^^^^^
+
+warn: Unused import: `definite_protocol::risk::risk_manager::StorageMapWriteAccess`
+ --> /Users/mehmethayirli/Documents/GitHub/definite-protocol-starknet/contracts/cairo/src/risk/risk_manager.cairo:4:27
+    StorageMapReadAccess, StorageMapWriteAccess
+                          ^^^^^^^^^^^^^^^^^^^^^
+
+warn: Plugin diagnostic: Enum with `#[derive(starknet::Store)] has no default variant. Either add one, or add `#[allow(starknet::store_no_default_variant)]`
+ --> /Users/mehmethayirli/Documents/GitHub/definite-protocol-starknet/contracts/cairo/src/risk/risk_manager.cairo:8:1-14:1
+  #[derive(Drop, Serde, Copy, starknet::Store)]
+ _^
+| ...
+| }
+|_^
+
+warn: Unused import: `definite_protocol::risk::risk_manager::RiskManager::CircuitBreakerTrigger`
+ --> /Users/mehmethayirli/Documents/GitHub/definite-protocol-starknet/contracts/cairo/src/risk/risk_manager.cairo:109:41
+    use super::{RiskLevel, RiskMetrics, CircuitBreakerTrigger};
+                                        ^^^^^^^^^^^^^^^^^^^^^
+
+warn: Unused import: `definite_protocol::risk::risk_manager::RiskManager::IPriceOracleDispatcherTrait`
+ --> /Users/mehmethayirli/Documents/GitHub/definite-protocol-starknet/contracts/cairo/src/risk/risk_manager.cairo:110:63
+    use crate::oracle::price_oracle::{IPriceOracleDispatcher, IPriceOracleDispatcherTrait};
+                                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warn[E0001]: Unused variable. Consider ignoring by prefixing with `_`.
+ --> /Users/mehmethayirli/Documents/GitHub/definite-protocol-starknet/contracts/cairo/src/risk/risk_manager.cairo:648:17
+            let oracle = IPriceOracleDispatcher { contract_address: self.price_oracle.read() };
+                ^^^^^^
+
+warn[E0001]: Unused variable. Consider ignoring by prefixing with `_`.
+ --> /Users/mehmethayirli/Documents/GitHub/definite-protocol-starknet/contracts/cairo/src/risk/risk_manager.cairo:650:17
+            let mock_strk_address: ContractAddress = Zero::zero(); // Placeholder
+                ^^^^^^^^^^^^^^^^^
+
+warn: Unused import: `definite_protocol::hedging::perpetual_hedge_minimal::ContractAddress`
+ --> /Users/mehmethayirli/Documents/GitHub/definite-protocol-starknet/contracts/cairo/src/hedging/perpetual_hedge_minimal.cairo:1:15
+use starknet::ContractAddress;
+              ^^^^^^^^^^^^^^^
+
+warn: Unused import: `definite_protocol::hedging::perpetual_hedge_minimal::StoragePointerReadAccess`
+ --> /Users/mehmethayirli/Documents/GitHub/definite-protocol-starknet/contracts/cairo/src/hedging/perpetual_hedge_minimal.cairo:2:25
+use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
+                        ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warn: Unused import: `definite_protocol::hedging::perpetual_hedge_minimal::StoragePointerWriteAccess`
+ --> /Users/mehmethayirli/Documents/GitHub/definite-protocol-starknet/contracts/cairo/src/hedging/perpetual_hedge_minimal.cairo:2:51
+use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
+                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warn[E0001]: Unused variable. Consider ignoring by prefixing with `_`.
+ --> /Users/mehmethayirli/Documents/GitHub/definite-protocol-starknet/contracts/cairo/src/hedging/perpetual_hedge_minimal.cairo:105:17
+            let target_delta = self.target_delta.read();
+                ^^^^^^^^^^^^
+
+warn: Unused import: `definite_protocol::hedging::options_strategy_minimal::ContractAddress`
+ --> /Users/mehmethayirli/Documents/GitHub/definite-protocol-starknet/contracts/cairo/src/hedging/options_strategy_minimal.cairo:1:15
+use starknet::ContractAddress;
+              ^^^^^^^^^^^^^^^
+
+warn: Unused import: `definite_protocol::hedging::options_strategy_minimal::StoragePointerReadAccess`
+ --> /Users/mehmethayirli/Documents/GitHub/definite-protocol-starknet/contracts/cairo/src/hedging/options_strategy_minimal.cairo:2:25
+use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
+                        ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warn: Unused import: `definite_protocol::hedging::options_strategy_minimal::StoragePointerWriteAccess`
+ --> /Users/mehmethayirli/Documents/GitHub/definite-protocol-starknet/contracts/cairo/src/hedging/options_strategy_minimal.cairo:2:51
+use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
+                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warn: Unused import: `definite_protocol::hedging::options_strategy_minimal::OptionsStrategy::get_block_timestamp`
+ --> /Users/mehmethayirli/Documents/GitHub/definite-protocol-starknet/contracts/cairo/src/hedging/options_strategy_minimal.cairo:25:57
+    use starknet::{ContractAddress, get_caller_address, get_block_timestamp};
+                                                        ^^^^^^^^^^^^^^^^^^^
+
+warn: Unused import: `definite_protocol::rebalancing::rebalancing_engine_minimal::ContractAddress`
+ --> /Users/mehmethayirli/Documents/GitHub/definite-protocol-starknet/contracts/cairo/src/rebalancing/rebalancing_engine_minimal.cairo:1:15
+use starknet::ContractAddress;
+              ^^^^^^^^^^^^^^^
+
+warn: Unused import: `definite_protocol::rebalancing::rebalancing_engine_minimal::StoragePointerReadAccess`
+ --> /Users/mehmethayirli/Documents/GitHub/definite-protocol-starknet/contracts/cairo/src/rebalancing/rebalancing_engine_minimal.cairo:2:25
+use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
+                        ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warn: Unused import: `definite_protocol::rebalancing::rebalancing_engine_minimal::StoragePointerWriteAccess`
+ --> /Users/mehmethayirli/Documents/GitHub/definite-protocol-starknet/contracts/cairo/src/rebalancing/rebalancing_engine_minimal.cairo:2:51
+use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
+                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+    Finished `dev` profile target(s) in 29 seconds
+✅ Contracts built successfully
+
+🔨 Step 2: Declaring all contracts...
+
+✅ All contracts declared!
+
+🚀 Step 3: Deploying contracts in correct order...
+
+1️⃣  Deploying PriceOracle...

@@ -1,0 +1,4 @@
+[sncast.sepolia]
+account = "definite_deployer"
+url = "https://starknet-sepolia.g.alchemy.com/starknet/version/rpc/v0_8/c74NJJI9JjRLdNwXjvlm9lhVJAbyJYck"
+

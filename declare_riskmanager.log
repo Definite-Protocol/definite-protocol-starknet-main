@@ -1,0 +1,7 @@
+WARNING: setting keystore passwords via --password or env var is generally considered insecure, as they might be stored in your shell history or other log files.
+Declaring Cairo 1 class: 0x05f7caa8303c41d50bb0e4d73714a89f06bad2e37a2ed9cf7e32ff5efdf23f8b
+Using the provided CASM hash: 0x00381ae44e6594bcc058ef62f0ba17923c4a18d2ec22d55c607fdc872a826e40...
+CASM class hash: 0x00381ae44e6594bcc058ef62f0ba17923c4a18d2ec22d55c607fdc872a826e40
+Contract declaration transaction: 0x02b1e57054e6715b81c7bafe8626c482fe149163bce2688bf0c2b66767178e7a
+Class hash declared:
+0x05f7caa8303c41d50bb0e4d73714a89f06bad2e37a2ed9cf7e32ff5efdf23f8b

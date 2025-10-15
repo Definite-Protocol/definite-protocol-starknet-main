@@ -1,0 +1,41 @@
+[package]
+name = "definite_protocol"
+version = "1.0.0"
+license-file = "LICENSE"
+cairo_version = "2.11.4"
+license = "MIT"
+edition = "2024_07"
+
+[dependencies]
+openzeppelin_token = "2.0.0"
+openzeppelin_access = "2.0.0"
+openzeppelin_utils = "2.0.0"
+starknet = "2.11.4"
+
+[dev-dependencies]
+snforge_std = "0.49.0"
+
+[[target.starknet-contract]]
+sierra = true
+casm = true
+
+[profile.dev.cairo]
+unstable-add-statements-code-locations-debug-info = true
+unstable-add-statements-functions-debug-info = true
+inlining-strategy = "avoid"
+
+[profile.release.cairo]
+inlining-strategy = "default"
+
+[[tool.snforge.fork]]
+name = "SEPOLIA_LATEST"
+url = "https://starknet-sepolia.public.blastapi.io/rpc/v0_8"
+block_id.tag = "latest"
+
+[tool.scarb]
+allow-prebuilt-plugins = ["snforge_std"]
+
+[scripts]
+test = "scarb test"
+build = "scarb build"
+

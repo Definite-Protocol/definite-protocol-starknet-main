@@ -1,0 +1,61 @@
+[package]
+name = "definite-cli"
+version = "1.0.0"
+edition = "2021"
+description = "Advanced CLI for Definite Protocol - Delta-neutral hedging on Starknet"
+authors = ["Definite Protocol Team"]
+license = "MIT"
+
+[[bin]]
+name = "definite"
+path = "src/main.rs"
+
+[dependencies]
+# CLI Framework
+clap = { version = "4.4", features = ["derive", "color"] }
+dialoguer = { version = "0.11", features = ["fuzzy-select"] }
+
+# Terminal UI & Styling
+ratatui = "0.24"
+crossterm = "0.27"
+owo-colors = "4.0"
+console = "0.15"
+indicatif = "0.17"
+
+# Starknet Integration
+starknet = "0.10"
+starknet-crypto = "0.7"
+starknet-providers = "0.10"
+starknet-accounts = "0.10"
+starknet-contract = "0.10"
+
+# Async Runtime
+tokio = { version = "1.0", features = ["full"] }
+futures = "0.3"
+
+# Data & Config
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+toml = "0.8"
+config = "0.14"
+
+# Utilities
+anyhow = "1.0"
+thiserror = "1.0"
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1.0", features = ["v4"] }
+reqwest = { version = "0.11", features = ["json"] }
+
+# Crypto & Math
+num-bigint = "0.4"
+num-traits = "0.2"
+url = "2.4"
+dirs = "5.0"
+hex = "0.4"
+
+# Development
+tracing = "0.1"
+tracing-subscriber = "0.3"
+
+[dev-dependencies]
+tokio-test = "0.4"
