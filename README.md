@@ -16,10 +16,16 @@
 ---
 
 ## Overview
+<img width="1920" height="1080" alt="1" src="https://github.com/user-attachments/assets/fe764921-f2f9-4af6-8b75-fb46ec4fa029" />
 
+---
 Definite Protocol is a sophisticated delta-neutral hedging system on Starknet that enables users to earn yield on STRK tokens while maintaining protection against price volatility. Users deposit STRK and receive hSTRK (hedged STRK) tokens, while the protocol automatically manages delta-neutral positions through perpetual futures and options strategies.
+---
 
 ### Key Features
+
+<img width="1920" height="1080" alt="4" src="https://github.com/user-attachments/assets/b5a0388e-9a49-4bfd-9425-76765f7617cf" />
+
 
 - **Delta-Neutral Exposure**: Earn yield without directional price risk
 - **Automated Hedging**: Perpetual futures and options strategies managed automatically
@@ -31,6 +37,9 @@ Definite Protocol is a sophisticated delta-neutral hedging system on Starknet th
 ---
 
 ## Architecture
+
+<img width="1920" height="1080" alt="6" src="https://github.com/user-attachments/assets/48d74b0b-1fde-44f2-ad7a-c67b230eee7c" />
+
 
 ### Core Smart Contracts
 
@@ -314,6 +323,9 @@ definite-protocol-starknet-main/
 ---
 
 ## How It Works
+
+<img width="1920" height="1080" alt="5" src="https://github.com/user-attachments/assets/498c478f-e651-4daa-9520-8415f2a57d23" />
+
 
 ### 1. User Deposits STRK
 
@@ -618,6 +630,8 @@ Update price from DEX TWAP (fallback).
 ---
 
 ## Performance Metrics
+
+<img width="1920" height="1080" alt="10" src="https://github.com/user-attachments/assets/f2bd1143-6169-492b-8d9f-fb7dfba1911c" />
 
 ### Expected Yields
 
@@ -1134,6 +1148,9 @@ This software is provided "as is", without warranty of any kind. Use at your own
 
 ## Inspiration
 
+<img width="1920" height="1080" alt="8" src="https://github.com/user-attachments/assets/896f277e-2910-47eb-9937-849bc3447ab0" />
+
+
 The inspiration for Definite Protocol came from observing a critical gap in the DeFi ecosystem: users who want to earn yield on their crypto assets are forced to accept directional price risk. Traditional staking and yield farming strategies expose users to the full volatility of the underlying asset, which can wipe out gains during market downturns.
 
 We were particularly inspired by:
@@ -1146,11 +1163,16 @@ We were particularly inspired by:
 
 4. **The STRK Token Opportunity**: With STRK being a relatively new token with active perpetual markets and options trading, we saw the perfect opportunity to build a delta-neutral protocol specifically for the Starknet ecosystem.
 
+5. **Reflect Protocol**: This project, which does what we do on Solana in a slightly different way but using the same methods, is one of our sources of inspiration.
+
 The vision was clear: create a protocol where users can deposit STRK tokens and earn yield through funding rate arbitrage and volatility premium capture, while the protocol automatically maintains a delta-neutral position to eliminate price risk.
 
 ---
 
 ## What It Does
+
+<img width="1920" height="1080" alt="9" src="https://github.com/user-attachments/assets/510fa363-0cac-487c-9ee3-3683ac057dc8" />
+
 
 Definite Protocol is a fully automated delta-neutral yield generation system for STRK tokens. Here's exactly what it does:
 
@@ -1222,6 +1244,9 @@ Definite Protocol is a fully automated delta-neutral yield generation system for
 ---
 
 ## How We Built It
+
+<img width="1920" height="1080" alt="Partnership and KPI" src="https://github.com/user-attachments/assets/117ea2fb-9880-452e-a83d-ed60137abd0e" />
+
 
 ### Phase 1: Architecture & Planning (Week 1)
 
@@ -1837,8 +1862,10 @@ Definite Protocol is a fully automated delta-neutral yield generation system for
 
 ---
 
+<img width="1920" height="1080" alt="13" src="https://github.com/user-attachments/assets/fbeda602-f725-4189-aace-2d5f106ee65a" />
+
 <div align="center">
 
-**Built with ❤️ on Starknet**
+**Developed by Lich Studio**
 
 </div>
