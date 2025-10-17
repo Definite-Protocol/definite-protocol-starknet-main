@@ -1,16 +1,18 @@
 <div align="center">
 
+<img width="500" height="500" alt="seffaf-logo-definite" src="https://github.com/user-attachments/assets/7a75f3e5-827f-4677-8c99-5716d6363d34" />
+
+
 # Definite Protocol
 
 **Delta-Neutral Yield Protocol on Starknet**
-
-<img width="1920" height="1080" alt="2" src="https://github.com/user-attachments/assets/baa5a9dd-0a84-4a22-9fdf-745f30a7df2c" />
-
 
 [![Cairo](https://img.shields.io/badge/Cairo-2.11.4-orange)](https://www.cairo-lang.org/)
 [![Starknet](https://img.shields.io/badge/Starknet-Sepolia-purple)](https://www.starknet.io/)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Tests](https://img.shields.io/badge/Tests-Passing-green.svg)](tests/)
+
+<img width="1920" height="1080" alt="2" src="https://github.com/user-attachments/assets/baa5a9dd-0a84-4a22-9fdf-745f30a7df2c" />
 
 [Website](#) • [Documentation](#) • [Twitter](#) • [Discord](#)
 
