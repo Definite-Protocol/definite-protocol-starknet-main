@@ -4,6 +4,9 @@
 
 **Delta-Neutral Yield Protocol on Starknet**
 
+<img width="1920" height="1080" alt="2" src="https://github.com/user-attachments/assets/baa5a9dd-0a84-4a22-9fdf-745f30a7df2c" />
+
+
 [![Cairo](https://img.shields.io/badge/Cairo-2.11.4-orange)](https://www.cairo-lang.org/)
 [![Starknet](https://img.shields.io/badge/Starknet-Sepolia-purple)](https://www.starknet.io/)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
@@ -1148,7 +1151,8 @@ This software is provided "as is", without warranty of any kind. Use at your own
 
 ## Inspiration
 
-<img width="1920" height="1080" alt="8" src="https://github.com/user-attachments/assets/896f277e-2910-47eb-9937-849bc3447ab0" />
+
+<img width="1920" height="1080" alt="3" src="https://github.com/user-attachments/assets/c7788710-b655-46b9-b125-f2fa1b8ce1a8" />
 
 
 The inspiration for Definite Protocol came from observing a critical gap in the DeFi ecosystem: users who want to earn yield on their crypto assets are forced to accept directional price risk. Traditional staking and yield farming strategies expose users to the full volatility of the underlying asset, which can wipe out gains during market downturns.
@@ -1377,6 +1381,8 @@ Definite Protocol is a fully automated delta-neutral yield generation system for
 ---
 
 ## Challenges We Ran Into
+
+<img width="1920" height="1080" alt="8" src="https://github.com/user-attachments/assets/896f277e-2910-47eb-9937-849bc3447ab0" />
 
 ### 1. Cairo Type System Limitations
 
