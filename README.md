@@ -1,5 +1,7 @@
 <div align="center">
+  
 <img width="50" height="50" alt="seffaf-logo-definite" src="https://github.com/user-attachments/assets/7a75f3e5-827f-4677-8c99-5716d6363d34" />
+
 # Definite Protocol
 
 **Delta-Neutral Yield Protocol on Starknet**
