@@ -42,9 +42,6 @@ Definite Protocol is a sophisticated delta-neutral hedging system on Starknet th
 
 ## Architecture
 
-<img width="1920" height="1080" alt="6" src="https://github.com/user-attachments/assets/48d74b0b-1fde-44f2-ad7a-c67b230eee7c" />
-
-
 ### Core Smart Contracts
 
 The protocol consists of 7 production-ready smart contracts deployed on Starknet Sepolia:
