@@ -1,6 +1,6 @@
 <div align="center">
   
-<img width="200" height="200" alt="seffaf-logo-definite" src="https://github.com/user-attachments/assets/7a75f3e5-827f-4677-8c99-5716d6363d34" />
+<img width="1920" height="1080" alt="2" src="https://github.com/user-attachments/assets/baa5a9dd-0a84-4a22-9fdf-745f30a7df2c" />
 
 # Definite Protocol
 
@@ -11,7 +11,8 @@
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Tests](https://img.shields.io/badge/Tests-Passing-green.svg)](tests/)
 
-<img width="1920" height="1080" alt="2" src="https://github.com/user-attachments/assets/baa5a9dd-0a84-4a22-9fdf-745f30a7df2c" />
+<img width="200" height="200" alt="seffaf-logo-definite" src="https://github.com/user-attachments/assets/7a75f3e5-827f-4677-8c99-5716d6363d34" />
+
 
 [Website](#) • [Documentation](#) • [Twitter](#) • [Discord](#)
 
