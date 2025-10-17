@@ -1,9 +1,8 @@
+<img width="1920" height="1080" alt="1" src="https://github.com/user-attachments/assets/fe764921-f2f9-4af6-8b75-fb46ec4fa029" />
+
 <div align="center">
   
-<img width="1920" height="1080" alt="2" src="https://github.com/user-attachments/assets/baa5a9dd-0a84-4a22-9fdf-745f30a7df2c" />
-
 # Definite Protocol
-
 **Delta-Neutral Yield Protocol on Starknet**
 
 [![Cairo](https://img.shields.io/badge/Cairo-2.11.4-orange)](https://www.cairo-lang.org/)
@@ -21,7 +20,8 @@
 ---
 
 ## Overview
-<img width="1920" height="1080" alt="1" src="https://github.com/user-attachments/assets/fe764921-f2f9-4af6-8b75-fb46ec4fa029" />
+
+<img width="1920" height="1080" alt="2" src="https://github.com/user-attachments/assets/baa5a9dd-0a84-4a22-9fdf-745f30a7df2c" />
 
 ---
 Definite Protocol is a sophisticated delta-neutral hedging system on Starknet that enables users to earn yield on STRK tokens while maintaining protection against price volatility. Users deposit STRK and receive hSTRK (hedged STRK) tokens, while the protocol automatically manages delta-neutral positions through perpetual futures and options strategies.
