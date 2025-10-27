@@ -8,7 +8,11 @@ import LoadingSpinner from './components/LoadingSpinner';
 import ErrorBoundary from './components/ErrorBoundary';
 import NetworkWarning from './components/NetworkWarning';
 import { useWallet } from './hooks/useWallet';
-import { pragmaOracleService } from './services/pragmaOracleService';
+import { useStarknetHSTRK } from './hooks/useStarknetHSTRK';
+import { useProtocolStats } from './hooks/useProtocolStats';
+import { useAnalytics } from './hooks/useAnalytics';
+import { useUserSettings } from './hooks/useUserSettings';
+import { pragmaOracleService, PriceFeedPair } from './services/pragmaOracleService';
 import { riskManagementService } from './services/riskManagementService';
 import { starknetHstrkService } from './services/starknetHstrkService';
 import { ChartDataPoint } from './types';
@@ -119,15 +123,75 @@ interface AnalyticsStats {
 
 // Enterprise Analytics Component
 const EnterpriseAnalytics: React.FC = () => {
-  // Mock data for now - will be replaced with real Starknet data
-  const stats: AnalyticsStats = {
-    totalValueLocked: 0,
-    totalUsers: 0,
-    totalTransactions: 0,
-    averageApy: 0
-  };
-  const tvlHistory: ChartDataPoint[] = [];
-  const collateralHistory: ChartDataPoint[] = [];
+  const { metrics, loading: metricsLoading, error: metricsError } = useProtocolStats(30000);
+  const { tvlHistory, userMetrics, loading: analyticsLoading, timeRange, setTimeRange } = useAnalytics('30d');
+  const [strkPrice, setStrkPrice] = useState<number>(0);
+
+  React.useEffect(() => {
+    const fetchPrice = async () => {
+      try {
+        const priceData = await pragmaOracleService.getPrice(PriceFeedPair.STRK_USD);
+        setStrkPrice(priceData.price);
+      } catch (err) {
+        console.error('Failed to fetch STRK price:', err);
+        setStrkPrice(0.85);
+      }
+    };
+    fetchPrice();
+    const interval = setInterval(fetchPrice, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const stats: AnalyticsStats = React.useMemo(() => {
+    if (!metrics) {
+      return {
+        totalValueLocked: 0,
+        totalUsers: 0,
+        totalTransactions: 0,
+        averageApy: 0
+      };
+    }
+
+    return {
+      totalValueLocked: metrics.totalValueLocked * strkPrice,
+      totalUsers: metrics.totalUsers,
+      totalTransactions: metrics.totalTransactions,
+      averageApy: metrics.averageApy
+    };
+  }, [metrics, strkPrice]);
+
+  const tvlChartData: ChartDataPoint[] = React.useMemo(() => {
+    return tvlHistory.map(point => ({
+      date: point.date,
+      value: point.value * strkPrice
+    }));
+  }, [tvlHistory, strkPrice]);
+
+  const tvlChange = React.useMemo(() => {
+    if (tvlHistory.length < 2) return 0;
+    const oldValue = tvlHistory[0].value;
+    const newValue = tvlHistory[tvlHistory.length - 1].value;
+    if (oldValue === 0) return 0;
+    return ((newValue - oldValue) / oldValue) * 100;
+  }, [tvlHistory]);
+
+  const userChange = React.useMemo(() => {
+    if (!userMetrics) return 0;
+    if (userMetrics.totalUsers === 0) return 0;
+    return (userMetrics.newUsers / userMetrics.totalUsers) * 100;
+  }, [userMetrics]);
+
+  if (metricsLoading || analyticsLoading) {
+    return <LoadingSpinner />;
+  }
+
+  if (metricsError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-red-400">Error: {metricsError}</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen p-6 pt-0 relative z-10">
@@ -137,25 +201,40 @@ const EnterpriseAnalytics: React.FC = () => {
             <h1 className="text-3xl font-normal text-black">Analytics</h1>
             <p className="text-black text-opacity-80">Protocol performance and metrics</p>
           </div>
+          <div className="flex gap-2">
+            {(['7d', '30d', '90d', 'all'] as const).map(range => (
+              <button
+                key={range}
+                onClick={() => setTimeRange(range)}
+                className={`px-4 py-2 rounded-xl transition-all ${
+                  timeRange === range
+                    ? 'bg-black text-white'
+                    : 'bg-white text-black border border-black hover:bg-gray-50'
+                }`}
+              >
+                {range === 'all' ? 'All' : range.toUpperCase()}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <MetricCard
             title="Total TVL"
-            value={`$${stats.totalValueLocked.toLocaleString()}`}
-            change="+15.2%"
-            isPositive={true}
+            value={`$${stats.totalValueLocked.toFixed(2)}`}
+            change={tvlChange !== 0 ? `${tvlChange > 0 ? '+' : ''}${tvlChange.toFixed(1)}%` : 'N/A'}
+            isPositive={tvlChange >= 0}
           />
           <MetricCard
             title="Average APY"
-            value={`${stats.averageApy || 0}%`}
-            change="+2.1%"
-            isPositive={true}
+            value={`${stats.averageApy.toFixed(2)}%`}
+            change={stats.averageApy > 0 ? `Active` : 'N/A'}
+            isPositive={stats.averageApy > 0}
           />
           <MetricCard
             title="Total Users"
             value={`${stats.totalUsers}`}
-            change="+8.5%"
+            change={userChange > 0 ? `+${userChange.toFixed(1)}% new` : 'N/A'}
             isPositive={true}
           />
         </div>
@@ -163,20 +242,31 @@ const EnterpriseAnalytics: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div className="bg-white backdrop-blur-sm p-6 border border-black rounded-2xl shadow-lg">
             <h3 className="text-xl font-normal text-black mb-4">TVL History</h3>
-            {tvlHistory.length > 0 ? (
-              <TVLChart data={tvlHistory} />
+            {tvlChartData.length > 0 ? (
+              <TVLChart data={tvlChartData} />
             ) : (
-              <div className="text-black text-opacity-60">Loading TVL data...</div>
+              <div className="text-black text-opacity-60">No TVL data available yet</div>
             )}
           </div>
           <div className="bg-white backdrop-blur-sm p-6 border border-black rounded-2xl shadow-lg">
-            <h3 className="text-xl font-normal text-black mb-4">Collateral Analysis</h3>
-            {collateralHistory.length > 0 ? (
-              <div className="text-black text-opacity-80">
-                Collateral data visualization would go here
+            <h3 className="text-xl font-normal text-black mb-4">User Metrics</h3>
+            {userMetrics ? (
+              <div className="space-y-4">
+                <div className="flex justify-between items-center p-4 bg-gray-50 rounded-xl">
+                  <span className="text-black font-medium">Total Users</span>
+                  <span className="text-black text-xl">{userMetrics.totalUsers}</span>
+                </div>
+                <div className="flex justify-between items-center p-4 bg-gray-50 rounded-xl">
+                  <span className="text-black font-medium">Active Users (30d)</span>
+                  <span className="text-black text-xl">{userMetrics.activeUsers}</span>
+                </div>
+                <div className="flex justify-between items-center p-4 bg-gray-50 rounded-xl">
+                  <span className="text-black font-medium">New Users (7d)</span>
+                  <span className="text-black text-xl">{userMetrics.newUsers}</span>
+                </div>
               </div>
             ) : (
-              <div className="text-white text-opacity-60">Loading collateral data...</div>
+              <div className="text-black text-opacity-60">No user data available yet</div>
             )}
           </div>
         </div>
@@ -197,6 +287,7 @@ interface Transaction {
   type: 'deposit' | 'withdraw';
   amount: number;
   timestamp: number;
+  status: string;
 }
 
 interface LandingStats {
@@ -696,72 +787,174 @@ const LandingPage: React.FC<LandingPageProps> = () => {
 
 // Enterprise Dashboard Component
 const EnterpriseDashboard: React.FC = () => {
-  const { starknetWallet, disconnectStarknetWallet: disconnectFn } = useWallet();
+  const { starknetWallet } = useWallet();
   const user = starknetWallet ? { address: starknetWallet.address } : null;
 
-  // Wrap disconnect to handle onClick properly
-  const disconnect = React.useCallback(() => {
-    disconnectFn();
-  }, [disconnectFn]);
+  // Real blockchain data from useStarknetHSTRK hook
+  const {
+    balances,
+    position,
+    transactionHistory,
+    mintHSTRK,
+    redeemHSTRK,
+    loading,
+    error,
+    mintState,
+    redeemState
+  } = useStarknetHSTRK();
 
   // State
   const [depositAmount, setDepositAmount] = useState('');
   const [withdrawAmount, setWithdrawAmount] = useState('');
-  const [processingTransaction, setProcessingTransaction] = useState(false);
+  const [strkPrice, setStrkPrice] = useState<number>(0);
 
-  // Mock data - memoized
-  const portfolio = React.useMemo<PortfolioData>(() => ({
-    totalValue: 0,
-    totalDeposited: 0,
-    totalYield: 0
-  }), []);
-
-  const yieldPerformanceData = React.useMemo<ChartDataPoint[]>(() => [], []);
-  const transactions = React.useMemo<Transaction[]>(() => [], []);
-  const portfolioLoading = false;
-  const portfolioError = null;
-
-  const tvlHistory = React.useMemo<ChartDataPoint[]>(() => [], []);
-  const collateralHistory = React.useMemo<ChartDataPoint[]>(() => [], []);
-  const protocolLoading = false;
-
-  // Enterprise-grade deposit/withdraw handlers
-  const deposit = React.useCallback(async () => {
-    // Will be implemented with real Starknet integration
+  // Fetch STRK price for USD conversion
+  React.useEffect(() => {
+    const fetchPrice = async () => {
+      try {
+        const priceData = await pragmaOracleService.getPrice(PriceFeedPair.STRK_USD);
+        setStrkPrice(priceData.price);
+      } catch (err) {
+        console.error('Failed to fetch STRK price:', err);
+        setStrkPrice(0.85);
+      }
+    };
+    fetchPrice();
+    const interval = setInterval(fetchPrice, 60000);
+    return () => clearInterval(interval);
   }, []);
 
-  const withdraw = React.useCallback(async () => {
-    // Will be implemented with real Starknet integration
-  }, []);
+  // Calculate portfolio metrics from real blockchain data
+  const portfolio = React.useMemo<PortfolioData>(() => {
+    const strkBalance = Number(balances.strk) / 1e18;
+    const hstrkBalance = Number(balances.hstrk) / 1e18;
+    const collateralBalance = Number(balances.collateral) / 1e18;
 
-  // Enterprise-grade transaction handlers
+    const totalValue = (strkBalance + hstrkBalance + collateralBalance) * strkPrice;
+    const totalDeposited = collateralBalance * strkPrice;
+    const totalYield = hstrkBalance * strkPrice - totalDeposited;
+
+    return {
+      totalValue,
+      totalDeposited,
+      totalYield
+    };
+  }, [balances, strkPrice]);
+
+  // Generate chart data from transaction history
+  const yieldPerformanceData = React.useMemo<ChartDataPoint[]>(() => {
+    if (!transactionHistory || transactionHistory.length === 0) return [];
+
+    // Calculate total yield from current position
+    const currentYield = portfolio.totalYield;
+
+    // Distribute yield across transactions proportionally
+    const totalTransactions = transactionHistory.length;
+
+    return transactionHistory.map((tx: any, index: number) => {
+      // Progressive yield accumulation
+      // Earlier transactions have less yield, later ones have more
+      const progressRatio = (index + 1) / totalTransactions;
+      const accumulatedYield = currentYield * progressRatio;
+
+      return {
+        date: new Date(tx.timestamp || Date.now()).toLocaleDateString(),
+        value: accumulatedYield
+      };
+    }).slice(-30);
+  }, [transactionHistory, portfolio.totalYield]);
+
+  // TVL history from user's perspective
+  const tvlHistory = React.useMemo<ChartDataPoint[]>(() => {
+    if (!transactionHistory || transactionHistory.length === 0) return [];
+
+    let cumulativeTVL = 0;
+    return transactionHistory.map((tx: any) => {
+      const amount = parseFloat(tx.collateralAmount || '0') / 1e18;
+      if (tx.type === 'MINT') {
+        cumulativeTVL += amount;
+      } else if (tx.type === 'REDEEM') {
+        cumulativeTVL -= amount;
+      }
+      return {
+        date: new Date(tx.timestamp || Date.now()).toLocaleDateString(),
+        value: cumulativeTVL * strkPrice
+      };
+    }).slice(-30);
+  }, [transactionHistory, strkPrice]);
+
+  const transactions = React.useMemo<Transaction[]>(() => {
+    if (!transactionHistory) return [];
+    return transactionHistory.map((tx: any, index: number) => ({
+      id: tx.transactionHash || tx.id || `tx-${tx.timestamp}-${index}`,
+      type: tx.type === 'MINT' ? 'deposit' : 'withdrawal',
+      amount: parseFloat(tx.collateralAmount || '0') / 1e18,
+      timestamp: tx.timestamp || Date.now(),
+      status: tx.status || 'completed'
+    }));
+  }, [transactionHistory]);
+
+  // Real deposit handler using mintHSTRK
   const handleDeposit = React.useCallback(async () => {
-    if (!depositAmount || processingTransaction) return;
+    if (!depositAmount || mintState.isProcessing) return;
     try {
-      setProcessingTransaction(true);
-      await deposit();
+      const amount = parseFloat(depositAmount);
+      if (isNaN(amount) || amount <= 0) {
+        alert('Please enter a valid amount');
+        return;
+      }
+      await mintHSTRK(amount);
       setDepositAmount('');
+      alert('Deposit successful!');
     } catch (error) {
       console.error('Deposit failed:', error);
-    } finally {
-      setProcessingTransaction(false);
+      alert(`Deposit failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-  }, [depositAmount, processingTransaction, deposit]);
+  }, [depositAmount, mintHSTRK, mintState.isProcessing]);
 
+  // Real withdraw handler using redeemHSTRK
   const handleWithdraw = React.useCallback(async () => {
-    if (!withdrawAmount || processingTransaction) return;
+    if (!withdrawAmount || redeemState.isProcessing) return;
     try {
-      setProcessingTransaction(true);
-      await withdraw();
+      const amount = parseFloat(withdrawAmount);
+      if (isNaN(amount) || amount <= 0) {
+        alert('Please enter a valid amount');
+        return;
+      }
+      await redeemHSTRK(amount);
       setWithdrawAmount('');
+      alert('Withdrawal successful!');
     } catch (error) {
       console.error('Withdrawal failed:', error);
-    } finally {
-      setProcessingTransaction(false);
+      alert(`Withdrawal failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-  }, [withdrawAmount, processingTransaction, withdraw]);
+  }, [withdrawAmount, redeemHSTRK, redeemState.isProcessing]);
 
-  if (portfolioLoading || protocolLoading) {
+  // Calculate risk score from health factor
+  const riskScore = React.useMemo(() => {
+    if (!position) return 0;
+    const healthFactor = position.healthFactor || 0;
+    if (healthFactor === 0) return 0;
+    const risk = Math.max(0, Math.min(100, 100 - (healthFactor * 50)));
+    return Math.round(risk);
+  }, [position]);
+
+  // Calculate change percentages from transaction history
+  const valueChange = React.useMemo(() => {
+    if (!transactionHistory || transactionHistory.length < 2) return 0;
+    const recent = transactionHistory.slice(-7);
+    if (recent.length < 2) return 0;
+    const oldValue = parseFloat(recent[0].collateralAmount || '0') / 1e18 * strkPrice;
+    const newValue = parseFloat(recent[recent.length - 1].collateralAmount || '0') / 1e18 * strkPrice;
+    if (oldValue === 0) return 0;
+    return ((newValue - oldValue) / oldValue) * 100;
+  }, [transactionHistory, strkPrice]);
+
+  const portfolioLoading = loading;
+  const portfolioError = error;
+  const processingTransaction = mintState.isProcessing || redeemState.isProcessing;
+
+  if (portfolioLoading) {
     return <LoadingSpinner />;
   }
 
@@ -784,44 +977,32 @@ const EnterpriseDashboard: React.FC = () => {
               Welcome back, {user?.address ? `${user.address.slice(0, 8)}...` : 'User'}
             </p>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="text-black text-opacity-60">
-              Wallet: Connected
-            </div>
-            <button
-              onClick={disconnect}
-              className="bg-white hover:bg-gray-50 text-black px-6 py-3 rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl border border-black flex items-center space-x-2"
-            >
-              <LogOut size={16} />
-              <span>Disconnect</span>
-            </button>
-          </div>
         </div>
 
         {/* Portfolio Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <MetricCard
             title="Total Value"
-            value={`$${portfolio.totalValue.toLocaleString()}`}
-            change="+12.5%"
-            isPositive={true}
+            value={`$${portfolio.totalValue.toFixed(2)}`}
+            change={valueChange !== 0 ? `${valueChange > 0 ? '+' : ''}${valueChange.toFixed(1)}%` : 'N/A'}
+            isPositive={valueChange >= 0}
           />
           <MetricCard
             title="Total Yield"
-            value={`$${portfolio.totalYield.toLocaleString()}`}
-            change="+8.2%"
-            isPositive={true}
+            value={`$${portfolio.totalYield.toFixed(2)}`}
+            change={portfolio.totalYield > 0 ? `+${((portfolio.totalYield / portfolio.totalDeposited) * 100).toFixed(1)}%` : 'N/A'}
+            isPositive={portfolio.totalYield >= 0}
           />
           <MetricCard
-            title="Risk Score"
-            value="0/100"
-            change="-2.1%"
-            isPositive={false}
+            title="Health Factor"
+            value={position?.healthFactor ? position.healthFactor.toFixed(2) : '0.00'}
+            change={`Risk: ${riskScore}/100`}
+            isPositive={position?.healthFactor ? position.healthFactor >= 1.5 : true}
           />
           <MetricCard
             title="Transactions"
             value={`${transactions?.length || 0}`}
-            change="+5"
+            change={`${transactions?.filter((t: Transaction) => t.status === 'completed').length || 0} completed`}
             isPositive={true}
           />
         </div>
@@ -888,12 +1069,27 @@ const EnterpriseDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Collateral History */}
-        {collateralHistory && (
-          <div className="mt-8 bg-white bg-opacity-10 backdrop-blur-sm p-6 border border-white border-opacity-20">
-            <h3 className="text-xl font-normal text-white mb-4">Collateral History</h3>
-            <div className="text-white text-opacity-80">
-              Historical collateral data visualization would go here
+        {/* Transaction History */}
+        {transactions && transactions.length > 0 && (
+          <div className="mt-8 bg-white backdrop-blur-sm p-6 border border-black rounded-2xl shadow-lg">
+            <h3 className="text-xl font-normal text-black mb-4">Recent Transactions</h3>
+            <div className="space-y-2">
+              {transactions.slice(-5).reverse().map((tx: Transaction) => (
+                <div key={tx.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-xl">
+                  <div>
+                    <span className="font-medium text-black capitalize">{tx.type}</span>
+                    <span className="text-black text-opacity-60 ml-2">{tx.amount.toFixed(4)} STRK</span>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-black text-opacity-60 text-sm">
+                      {new Date(tx.timestamp).toLocaleDateString()}
+                    </div>
+                    <div className={`text-sm ${tx.status === 'completed' ? 'text-green-600' : 'text-yellow-600'}`}>
+                      {tx.status}
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}
@@ -1053,7 +1249,7 @@ const Dashboard: React.FC = () => {
         )}
       </nav>
 
-      <div className="pt-2 relative z-10">
+      <div className="pt-32 relative z-10">
         <EnterpriseDashboard />
       </div>
 
@@ -1203,67 +1399,133 @@ const Analytics: React.FC = () => {
 // Settings Component
 const Settings: React.FC = () => {
   const navigate = useNavigate();
+  const { starknetWallet } = useWallet();
+  const { settings, loading, saving, error, updateSettings, saveSettings, resetSettings } = useUserSettings(
+    starknetWallet?.address || null
+  );
+
+  const handleSave = async () => {
+    try {
+      await saveSettings();
+      alert('Settings saved successfully!');
+    } catch (err) {
+      alert(`Failed to save settings: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    }
+  };
+
+  if (loading) {
+    return <LoadingSpinner />;
+  }
+
   return (
-  <div className="min-h-screen bg-white p-6">
-    <div className="max-w-4xl mx-auto">
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-3xl font-normal text-black">Settings</h1>
-          <p className="text-black text-opacity-80">Manage your preferences</p>
+    <div className="min-h-screen bg-white p-6">
+      <div className="max-w-4xl mx-auto">
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-3xl font-normal text-black">Settings</h1>
+            <p className="text-black text-opacity-80">Manage your preferences</p>
+          </div>
+          <button
+            onClick={() => navigate('/')}
+            className="text-black text-opacity-60 hover:text-black transition-colors"
+          >
+            ← Back to Home
+          </button>
         </div>
-        <button
-          onClick={() => navigate('/')}
-          className="text-black text-opacity-60 hover:text-black transition-colors"
-        >
-          ← Back to Home
-        </button>
-      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white backdrop-blur-sm p-6 border border-black rounded-2xl shadow-lg">
-          <h3 className="text-xl font-normal text-black mb-4">Account Settings</h3>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-black mb-2">Email Notifications</label>
-              <div className="flex items-center">
-                <input type="checkbox" className="mr-3" defaultChecked />
-                <span className="text-black text-opacity-80">Receive yield payments notifications</span>
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-600">
+            {error}
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <div className="bg-white backdrop-blur-sm p-6 border border-black rounded-2xl shadow-lg">
+            <h3 className="text-xl font-normal text-black mb-4">Account Settings</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-black mb-2">Email Notifications</label>
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    className="mr-3"
+                    checked={settings.emailNotifications}
+                    onChange={(e) => updateSettings({ emailNotifications: e.target.checked })}
+                  />
+                  <span className="text-black text-opacity-80">Receive yield payments notifications</span>
+                </div>
+              </div>
+              <div>
+                <label className="block text-black mb-2">Preferred Currency</label>
+                <select
+                  className="w-full bg-white border border-black px-4 py-2 text-black rounded-xl"
+                  value={settings.preferredCurrency}
+                  onChange={(e) => updateSettings({ preferredCurrency: e.target.value as any })}
+                >
+                  <option value="USD">USD</option>
+                  <option value="STRK">STRK</option>
+                  <option value="BTC">BTC</option>
+                  <option value="ETH">ETH</option>
+                </select>
               </div>
             </div>
-            <div>
-              <label className="block text-black mb-2">Preferred Currency</label>
-              <select className="bg-white border border-black px-4 py-2 text-black rounded-xl">
-                <option value="USD">USD</option>
-                <option value="STRK">STRK</option>
-                <option value="BTC">BTC</option>
-              </select>
+          </div>
+
+          <div className="bg-white backdrop-blur-sm p-6 border border-black rounded-2xl shadow-lg">
+            <h3 className="text-xl font-normal text-black mb-4">Risk Settings</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-black mb-2">Risk Tolerance</label>
+                <select
+                  className="w-full bg-white border border-black px-4 py-2 text-black rounded-xl"
+                  value={settings.riskTolerance}
+                  onChange={(e) => updateSettings({ riskTolerance: e.target.value as any })}
+                >
+                  <option value="conservative">Conservative</option>
+                  <option value="moderate">Moderate</option>
+                  <option value="aggressive">Aggressive</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-black mb-2">Auto-rebalancing</label>
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    className="mr-3"
+                    checked={settings.autoRebalance}
+                    onChange={(e) => updateSettings({ autoRebalance: e.target.checked })}
+                  />
+                  <span className="text-black text-opacity-80">Enable automatic portfolio rebalancing</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="bg-white backdrop-blur-sm p-6 border border-black rounded-2xl shadow-lg">
-          <h3 className="text-xl font-normal text-black mb-4">Risk Settings</h3>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-black mb-2">Risk Tolerance</label>
-              <select className="bg-white border border-black px-4 py-2 text-black rounded-xl">
-                <option value="conservative">Conservative</option>
-                <option value="moderate">Moderate</option>
-                <option value="aggressive">Aggressive</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-white mb-2">Auto-rebalancing</label>
-              <div className="flex items-center">
-                <input type="checkbox" className="mr-3" defaultChecked />
-                <span className="text-white text-opacity-80">Enable automatic portfolio rebalancing</span>
-              </div>
-            </div>
-          </div>
+        <div className="flex gap-4">
+          <button
+            onClick={handleSave}
+            disabled={saving || !starknetWallet}
+            className="flex-1 bg-black hover:bg-gray-800 disabled:bg-gray-300 text-white px-6 py-3 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg"
+          >
+            {saving ? 'Saving...' : 'Save Settings'}
+          </button>
+          <button
+            onClick={resetSettings}
+            disabled={saving}
+            className="px-6 py-3 bg-white border border-black text-black rounded-xl hover:bg-gray-50 transition-all"
+          >
+            Reset to Defaults
+          </button>
         </div>
+
+        {!starknetWallet && (
+          <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-xl text-yellow-800">
+            Please connect your wallet to save settings
+          </div>
+        )}
       </div>
     </div>
-  </div>
   );
 };
 

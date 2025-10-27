@@ -645,9 +645,15 @@ class StarknetHstrkServiceNew {
    */
   async getUserTransactionHistory(userAddress: string): Promise<any[]> {
     try {
-      // Get transactions from localStorage
-      const key = `starknet_transactions_${userAddress}`;
-      console.log('📜 Getting transaction history', { userAddress, key });
+      // Normalize address to ensure consistent key
+      const normalizedAddress = this.normalizeAddress(userAddress);
+      const key = `starknet_transactions_${normalizedAddress}`;
+
+      console.log('📜 Getting transaction history', {
+        originalAddress: userAddress,
+        normalizedAddress,
+        key
+      });
 
       const storedTxs = localStorage.getItem(key);
       console.log('📜 LocalStorage result', { storedTxs, hasData: !!storedTxs });
@@ -665,10 +671,10 @@ class StarknetHstrkServiceNew {
         id: tx.transactionHash || tx.id,
         timestamp: tx.timestamp || Date.now(),
         type: tx.type || 'MINT',
-        algoAmount: tx.collateralAmount || tx.amount || 0,
-        hstrkAmount: tx.hstrkAmount || tx.amount || 0,
+        transactionHash: tx.transactionHash,
+        collateralAmount: tx.collateralAmount || tx.amount || '0',
+        hstrkAmount: tx.hstrkAmount || tx.amount || '0',
         ratio: tx.ratio || 1.0,
-        txHash: tx.transactionHash,
         status: tx.status || 'completed'
       }));
 
@@ -681,12 +687,34 @@ class StarknetHstrkServiceNew {
   }
 
   /**
+   * Normalize address - ensure consistent format with leading zeros
+   */
+  private normalizeAddress(address: string): string {
+    // Remove 0x prefix
+    let addr = address.toLowerCase().replace('0x', '');
+
+    // Pad to 64 characters (32 bytes)
+    addr = addr.padStart(64, '0');
+
+    // Add 0x prefix back
+    return '0x' + addr;
+  }
+
+  /**
    * Save Transaction to History
    */
   async saveTransaction(userAddress: string, transaction: any): Promise<void> {
     try {
-      const key = `starknet_transactions_${userAddress}`;
-      console.log('💾 Saving transaction', { userAddress, key, transaction });
+      // Normalize address to ensure consistent key
+      const normalizedAddress = this.normalizeAddress(userAddress);
+      const key = `starknet_transactions_${normalizedAddress}`;
+
+      console.log('💾 Saving transaction', {
+        originalAddress: userAddress,
+        normalizedAddress,
+        key,
+        transaction
+      });
 
       const storedTxs = localStorage.getItem(key);
       const transactions = storedTxs ? JSON.parse(storedTxs) : [];

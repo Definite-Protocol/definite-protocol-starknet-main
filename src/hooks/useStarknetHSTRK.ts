@@ -6,7 +6,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { starknetHstrkService, MintQuote, RedeemQuote, Position, Balances } from '../services/starknetHstrkService';
-import { useAccount } from '@starknet-react/core';
+import { useAccount, useProvider } from '@starknet-react/core';
 import { logger } from '../utils/logger';
 import { Account } from 'starknet';
 
@@ -17,108 +17,94 @@ interface TransactionState {
 }
 
 export const useStarknetHSTRK = () => {
-  const { address, isConnected, account } = useAccount();
+  const { address, isConnected, account, connector } = useAccount();
+  const { provider } = useProvider();
 
-  // Get account from connected wallet using get-starknet
+  // Get account - try multiple sources
   const [walletAccount, setWalletAccount] = useState<Account | null>(null);
 
   useEffect(() => {
     const getAccount = async () => {
-      if (isConnected && address && typeof window !== 'undefined') {
+      logger.info('Getting account...', {
+        isConnected,
+        hasAccount: !!account,
+        hasAddress: !!address,
+        hasConnector: !!connector,
+        hasProvider: !!provider,
+        accountAddress: account?.address,
+        connectedAddress: address
+      });
+
+      if (!isConnected || !address) {
+        setWalletAccount(null);
+        return;
+      }
+
+      // Strategy 1: Use account from useAccount hook if available
+      if (account && account.address) {
+        logger.info('✅ Strategy 1: Using account from useAccount hook');
+        setWalletAccount(account as Account);
+        return;
+      }
+
+      // Strategy 2: Get account from connector
+      if (connector && provider) {
         try {
+          logger.info('Strategy 2: Fetching account from connector...');
+          const connectorAccount = await connector.account(provider);
+
+          if (connectorAccount && connectorAccount.address) {
+            logger.info('✅ Strategy 2: Got account from connector');
+            setWalletAccount(connectorAccount as Account);
+            return;
+          }
+        } catch (err) {
+          logger.warn('Strategy 2 failed:', err);
+        }
+      }
+
+      // Strategy 3: Get account from window.starknet (last resort)
+      if (typeof window !== 'undefined') {
+        try {
+          logger.info('Strategy 3: Trying window.starknet...');
           const win = window as any;
 
-          // Try different wallet injections
-          const walletSources = [
-            { name: 'starknet_argentX', obj: win.starknet_argentX },
-            { name: 'starknet_braavos', obj: win.starknet_braavos },
-            { name: 'starknet', obj: win.starknet },
+          // Try different wallet sources
+          const sources = [
+            { name: 'argentX', obj: win.starknet_argentX },
+            { name: 'braavos', obj: win.starknet_braavos },
+            { name: 'starknet', obj: win.starknet }
           ];
 
-          // SIMPLE FIX: Just use the wallet's account object as-is
-          // Don't manipulate it - the wallet knows best
-          for (const source of walletSources) {
-            if (source.obj && source.obj.account) {
-              const acc = source.obj.account;
-
-              logger.info(`Found wallet account from ${source.name}:`, {
-                accountAddress: acc.address,
-                addressType: typeof acc.address,
-                addressDefined: !!acc.address,
-                connectedAddress: address,
-                hasProvider: !!source.obj.provider,
-                accountKeys: Object.keys(acc),
-                accountType: acc.constructor?.name
-              });
-
-              // Validate account has address
-              if (!acc.address) {
-                logger.error(`Account from ${source.name} has no address!`);
-                continue; // Try next source
-              }
-
-              setWalletAccount(acc);
-              logger.info(`✅ Using wallet account from ${source.name}`);
+          for (const source of sources) {
+            if (source.obj?.account?.address) {
+              logger.info(`✅ Strategy 3: Using account from ${source.name}`);
+              setWalletAccount(source.obj.account);
               return;
             }
           }
 
-          // Last resort: try to enable wallet
-          if (win.starknet) {
-            try {
-              logger.info('Attempting to enable wallet...');
-              await win.starknet.enable();
-
-              if (win.starknet.account) {
-                const acc = win.starknet.account;
-
-                logger.info('Wallet enabled, using account:', {
-                  accountAddress: acc.address,
-                  connectedAddress: address
-                });
-
-                setWalletAccount(acc);
-                logger.info('✅ Using wallet account after enable');
-                return;
-              }
-            } catch (enableErr) {
-              logger.warn('Failed to enable wallet', enableErr);
+          // Try enabling wallet
+          if (win.starknet && !win.starknet.account) {
+            logger.info('Strategy 3: Enabling wallet...');
+            await win.starknet.enable();
+            if (win.starknet.account?.address) {
+              logger.info('✅ Strategy 3: Got account after enable');
+              setWalletAccount(win.starknet.account);
+              return;
             }
           }
-
-          logger.warn('No wallet account found - will try to use account from useAccount hook');
         } catch (err) {
-          logger.error('Failed to get wallet account', err);
+          logger.warn('Strategy 3 failed:', err);
         }
-      } else {
-        setWalletAccount(null);
       }
+
+      logger.error('❌ All strategies failed - no account available');
+      setWalletAccount(null);
     };
+
     getAccount();
-  }, [isConnected, address]);
-
-  // Fallback: Use account from useAccount hook if wallet account not found
-  useEffect(() => {
-    if (isConnected && account && !walletAccount) {
-      logger.info('Using account from useAccount hook as fallback:', {
-        accountAddress: account.address,
-        addressType: typeof account.address,
-        addressDefined: !!account.address,
-        connectedAddress: address,
-        accountKeys: Object.keys(account),
-        accountType: account.constructor?.name
-      });
-
-      // Validate account has address
-      if (!account.address) {
-        logger.error('Account from useAccount hook has no address!');
-        return;
-      }
-
-      setWalletAccount(account as Account);
-      logger.info('✅ Using account from useAccount hook');
-    }
-  }, [isConnected, account, walletAccount, address]);
+  }, [isConnected, account, address, connector, provider]);
 
   // State
   const [balances, setBalances] = useState<Balances>({
@@ -224,8 +210,20 @@ export const useStarknetHSTRK = () => {
 
   // Mint hSTRK
   const mintHSTRK = useCallback(async (collateralAmount: number) => {
+    logger.info('Mint requested:', {
+      hasWalletAccount: !!walletAccount,
+      walletAccountAddress: walletAccount?.address,
+      isConnected,
+      connectedAddress: address,
+      hasAccount: !!account,
+      accountAddress: account?.address,
+      amount: collateralAmount
+    });
+
     if (!walletAccount) {
-      throw new Error('Starknet wallet not connected');
+      const errorMsg = `Wallet not ready. isConnected: ${isConnected}, hasAccount: ${!!account}, hasAddress: ${!!account?.address}`;
+      logger.error(errorMsg);
+      throw new Error('Starknet wallet not connected. Please wait for wallet to initialize or reconnect.');
     }
 
     logger.info('Starting mint...', {
@@ -238,7 +236,21 @@ export const useStarknetHSTRK = () => {
 
     try {
       const amountBigInt = BigInt(Math.floor(collateralAmount * 1_000_000_000_000_000_000));
+
+      logger.info('Calling mint service...', {
+        amount: collateralAmount,
+        amountBigInt: amountBigInt.toString(),
+        walletAddress: walletAccount.address
+      });
+
       const result = await starknetHstrkService.mint(walletAccount, amountBigInt);
+
+      logger.info('Mint successful!', {
+        txHash: result.transactionHash,
+        amount: collateralAmount
+      });
+
+      // Transaction is saved by the service, no need to save here
 
       setMintState({
         isProcessing: false,
@@ -250,6 +262,7 @@ export const useStarknetHSTRK = () => {
       return result;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Mint failed';
+      logger.error('Mint failed', { error: err, message: errorMessage });
       setMintState({
         isProcessing: false,
         txHash: null,
