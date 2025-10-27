@@ -723,7 +723,8 @@ class StarknetHstrkServiceNew {
 
       const newTx = {
         ...transaction,
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        userAddress: normalizedAddress  // Add user address for analytics
       };
 
       transactions.push(newTx);

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, useNavigate } from 'react-router-dom';
-import { TrendingUp, PieChart, Activity, ArrowUpRight, ArrowDownLeft, Menu, X, LogOut, AlertCircle, Home } from 'lucide-react';
+import { TrendingUp, ArrowUpRight, ArrowDownLeft, Menu, X, LogOut, AlertCircle, Home } from 'lucide-react';
 import YieldPerformanceChart from './components/YieldPerformanceChart';
 import TVLChart from './components/TVLChart';
 import WalletConnectModalNew from './components/WalletConnectModalNew';
@@ -31,19 +31,6 @@ interface MetricCardProps {
   value: string;
   change: string;
   isPositive: boolean;
-}
-
-interface FeatureCardProps {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-}
-
-interface StepProps {
-  number: number;
-  title: string;
-  description: string;
-  isLast?: boolean;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
@@ -82,33 +69,6 @@ const MetricCard: React.FC<MetricCardProps> = ({ title, value, change, isPositiv
     <div className={`text-sm flex items-center ${isPositive ? 'text-green-300' : 'text-red-300'}`}>
       {isPositive ? <ArrowUpRight size={14} /> : <ArrowDownLeft size={14} />}
       <span className="ml-1">{change}</span>
-    </div>
-  </div>
-);
-
-// Feature Card Component
-const FeatureCard: React.FC<FeatureCardProps> = ({ icon, title, description }) => (
-  <div className="bg-white backdrop-blur-sm p-8 border border-black hover:bg-gray-50 transition-all duration-300 group hover:scale-105 rounded-2xl shadow-lg hover:shadow-xl">
-    <div className="text-black mb-4 group-hover:scale-110 transition-transform duration-300">
-      {icon}
-    </div>
-    <h3 className="text-xl font-normal text-black mb-3">{title}</h3>
-    <p className="text-black text-opacity-80 leading-relaxed">{description}</p>
-  </div>
-);
-
-// Step Component
-const Step: React.FC<StepProps> = ({ number, title, description, isLast = false }) => (
-  <div className="flex items-start">
-    <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-white to-gray-100 rounded-full flex items-center justify-center mr-4 relative shadow-lg">
-      <span className="text-black font-normal">{number}</span>
-      {!isLast && (
-        <div className="absolute top-12 left-1/2 transform -translate-x-1/2 w-0.5 h-16 bg-white bg-opacity-30"></div>
-      )}
-    </div>
-    <div className="pt-2">
-      <h3 className="text-xl font-normal text-black mb-2">{title}</h3>
-      <p className="text-black text-opacity-80">{description}</p>
     </div>
   </div>
 );
@@ -570,7 +530,7 @@ const LandingPage: React.FC<LandingPageProps> = () => {
               {/* Action Button */}
               <div className="pt-4">
                 <button
-                  onClick={() => isConnected ? navigate('/dashboard') : setWalletModalOpen(true)}
+                  onClick={() => isConnected ? navigate('/mint') : setWalletModalOpen(true)}
                   className="group bg-white hover:bg-gray-50 text-black px-16 py-4 font-normal text-lg rounded-3xl transition-all duration-500 flex items-center justify-center hover:scale-110 active:scale-95 min-w-[320px] shadow-2xl transform hover:-translate-y-1 border border-black"
                 >
                   Launch App
@@ -660,123 +620,6 @@ const LandingPage: React.FC<LandingPageProps> = () => {
       <div className="w-full h-px bg-black"></div>
 
       {/* Enterprise Features Section */}
-      <section className="py-20 px-6 bg-white">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-normal text-black mb-6">Enterprise-Grade Features</h2>
-            <p className="text-xl text-black text-opacity-80 max-w-3xl mx-auto">
-              Advanced DeFi infrastructure built for institutional and professional traders
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <FeatureCard
-              icon={<Activity size={32} />}
-              title="Real-Time Analytics"
-              description="Monitor your portfolio performance with enterprise-grade analytics and risk metrics in real-time."
-            />
-            <FeatureCard
-              icon={<PieChart size={32} />}
-              title="Portfolio Optimization"
-              description="Automated rebalancing and delta-neutral strategies to maximize yield while minimizing risk."
-            />
-            <FeatureCard
-              icon={<TrendingUp size={32} />}
-              title="Yield Farming"
-              description="Access to multiple yield farming strategies with automated compounding and reinvestment."
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* Enterprise How It Works Section */}
-      <section className="py-20 px-6 bg-white">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-normal text-black mb-6">How It Works</h2>
-            <p className="text-xl text-black text-opacity-80 max-w-3xl mx-auto">
-              Simple steps to start earning with enterprise-grade DeFi strategies
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Step
-              number={1}
-              title="Connect Wallet"
-              description="Connect your Strkrand wallet using Pera, Defly, or Lute wallet for secure access."
-            />
-            <Step
-              number={2}
-              title="Deposit Assets"
-              description="Deposit STRK or other supported assets to start earning yield through automated strategies."
-            />
-            <Step
-              number={3}
-              title="Earn Rewards"
-              description="Watch your portfolio grow with automated yield farming and delta-neutral hedging strategies."
-              isLast={true}
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* Enterprise Portfolio Dashboard Preview */}
-      {isConnected && portfolio && (
-        <section className="py-20 px-6">
-          <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-16">
-              <h2 className="text-4xl font-normal text-white mb-6">Your Portfolio</h2>
-              <p className="text-xl text-white text-opacity-80">
-                Real-time portfolio performance and analytics
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-              <MetricCard
-                title="Total Value"
-                value={`$${portfolio.totalValue.toLocaleString()}`}
-                change="+12.5%"
-                isPositive={true}
-              />
-              <MetricCard
-                title="Total Yield"
-                value={`$${portfolio.totalYield.toLocaleString()}`}
-                change="+8.2%"
-                isPositive={true}
-              />
-              <MetricCard
-                title="Risk Score"
-                value="0/100"
-                change="-2.1%"
-                isPositive={false}
-              />
-              <MetricCard
-                title="Transactions"
-                value={`${transactions.length}`}
-                change="+5"
-                isPositive={true}
-              />
-            </div>
-
-            {/* Enterprise Charts */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <div className="bg-white bg-opacity-10 backdrop-blur-sm p-6 border border-white border-opacity-20">
-                <h3 className="text-xl font-normal text-white mb-4">Yield Performance</h3>
-                {yieldPerformanceData.length > 0 && (
-                  <YieldPerformanceChart data={yieldPerformanceData} />
-                )}
-              </div>
-              <div className="bg-white bg-opacity-10 backdrop-blur-sm p-6 border border-white border-opacity-20">
-                <h3 className="text-xl font-normal text-white mb-4">TVL History</h3>
-                {tvlHistory && (
-                  <TVLChart data={tvlHistory} />
-                )}
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
-
       <WalletConnectModalNew
         isOpen={walletModalOpen}
         onClose={() => setWalletModalOpen(false)}
@@ -1384,7 +1227,7 @@ const Analytics: React.FC = () => {
         )}
       </nav>
 
-      <div className="pt-2 relative z-10">
+      <div className="pt-32 relative z-10">
         <EnterpriseAnalytics />
       </div>
 
