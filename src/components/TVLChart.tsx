@@ -7,29 +7,32 @@ interface TVLChartProps {
   loading?: boolean;
   title?: string;
   height?: number;
+  theme?: 'dark' | 'light';
 }
 
-const TVLChart: React.FC<TVLChartProps> = ({ 
-  data, 
-  loading = false, 
+const TVLChart: React.FC<TVLChartProps> = ({
+  data,
+  loading = false,
   title = "Total Value Locked",
-  height = 160 
+  height = 160,
+  theme = 'dark'
 }) => {
+  const isLight = theme === 'light';
   if (loading) {
     return (
-      <div style={{ height }} className="bg-white bg-opacity-5 flex items-center justify-center">
+      <div style={{ height }} className={`flex items-center justify-center ${isLight ? 'bg-gray-50' : 'bg-white bg-opacity-5'}`}>
         <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#6e6aff]"></div>
-        <span className="text-white text-opacity-50 ml-4 text-sm">Loading {title.toLowerCase()}...</span>
+        <span className={`ml-4 text-sm ${isLight ? 'text-black text-opacity-50' : 'text-white text-opacity-50'}`}>Loading {title.toLowerCase()}...</span>
       </div>
     );
   }
 
   if (!data || data.length === 0) {
     return (
-      <div style={{ height }} className="bg-white bg-opacity-5 flex items-center justify-center">
+      <div style={{ height }} className={`flex items-center justify-center ${isLight ? 'bg-gray-50' : 'bg-white bg-opacity-5'}`}>
         <div className="text-center">
-          <div className="text-white text-opacity-50 text-sm mb-1">No {title} Data</div>
-          <div className="text-white text-opacity-30 text-xs">Data will appear as protocol grows</div>
+          <div className={`text-sm mb-1 ${isLight ? 'text-black text-opacity-60' : 'text-white text-opacity-50'}`}>No {title} Data</div>
+          <div className={`text-xs ${isLight ? 'text-black text-opacity-40' : 'text-white text-opacity-30'}`}>Data will appear as protocol grows</div>
         </div>
       </div>
     );
@@ -38,8 +41,12 @@ const TVLChart: React.FC<TVLChartProps> = ({
   const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number }>; label?: string }) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-black bg-opacity-90 backdrop-blur-sm p-3 border border-[#6e6aff] border-opacity-50 rounded">
-          <p className="text-white text-xs mb-1">{`${label}`}</p>
+        <div className={`backdrop-blur-sm p-3 border rounded ${
+          isLight
+            ? 'bg-white border-black shadow-lg'
+            : 'bg-black bg-opacity-90 border-[#6e6aff] border-opacity-50'
+        }`}>
+          <p className={`text-xs mb-1 ${isLight ? 'text-black' : 'text-white'}`}>{`${label}`}</p>
           <p className="text-[#6e6aff] text-sm">
             {`$${payload[0].value.toLocaleString()}`}
           </p>
@@ -76,24 +83,24 @@ const TVLChart: React.FC<TVLChartProps> = ({
           </linearGradient>
         </defs>
         
-        <CartesianGrid 
-          strokeDasharray="3 3" 
-          stroke="rgba(255,255,255,0.1)"
+        <CartesianGrid
+          strokeDasharray="3 3"
+          stroke={isLight ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)'}
           vertical={false}
         />
-        
-        <XAxis 
-          dataKey="date" 
+
+        <XAxis
+          dataKey="date"
           axisLine={false}
           tickLine={false}
-          tick={{ fill: 'rgba(255,255,255,0.6)', fontSize: 10 }}
+          tick={{ fill: isLight ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.6)', fontSize: 10 }}
           interval="preserveStartEnd"
         />
-        
-        <YAxis 
+
+        <YAxis
           axisLine={false}
           tickLine={false}
-          tick={{ fill: 'rgba(255,255,255,0.6)', fontSize: 10 }}
+          tick={{ fill: isLight ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.6)', fontSize: 10 }}
           tickFormatter={formatYAxis}
         />
         

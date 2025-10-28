@@ -6,28 +6,32 @@ interface YieldPerformanceChartProps {
   data: ChartDataPoint[];
   loading?: boolean;
   height?: number;
+  theme?: 'dark' | 'light';
 }
 
-const YieldPerformanceChart: React.FC<YieldPerformanceChartProps> = ({ 
-  data, 
-  loading = false, 
-  height = 260 
+const YieldPerformanceChart: React.FC<YieldPerformanceChartProps> = ({
+  data,
+  loading = false,
+  height = 260,
+  theme = 'dark'
 }) => {
+  const isLight = theme === 'light';
+
   if (loading) {
     return (
-      <div className="h-64 bg-white bg-opacity-5 flex items-center justify-center">
+      <div className={`h-64 flex items-center justify-center ${isLight ? 'bg-gray-50' : 'bg-white bg-opacity-5'}`}>
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#6e6aff]"></div>
-        <span className="text-white text-opacity-50 ml-4">Loading performance data...</span>
+        <span className={`ml-4 ${isLight ? 'text-black text-opacity-50' : 'text-white text-opacity-50'}`}>Loading performance data...</span>
       </div>
     );
   }
 
   if (!data || data.length === 0) {
     return (
-      <div className="h-64 bg-white bg-opacity-5 flex items-center justify-center">
+      <div className={`h-64 flex items-center justify-center ${isLight ? 'bg-gray-50' : 'bg-white bg-opacity-5'}`}>
         <div className="text-center">
-          <div className="text-white text-opacity-50 text-lg mb-2">No Data Available</div>
-          <div className="text-white text-opacity-30 text-sm">Start investing to see your yield performance</div>
+          <div className={`text-lg mb-2 ${isLight ? 'text-black text-opacity-60' : 'text-white text-opacity-50'}`}>No Data Available</div>
+          <div className={`text-sm ${isLight ? 'text-black text-opacity-40' : 'text-white text-opacity-30'}`}>Start investing to see your yield performance</div>
         </div>
       </div>
     );
@@ -36,13 +40,17 @@ const YieldPerformanceChart: React.FC<YieldPerformanceChartProps> = ({
   const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number; payload: { apy?: number } }>; label?: string }) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-black bg-opacity-90 backdrop-blur-sm p-4 border border-[#6e6aff] border-opacity-50 rounded-lg">
-          <p className="text-white text-sm mb-2">{`Date: ${label}`}</p>
+        <div className={`backdrop-blur-sm p-4 border rounded-lg ${
+          isLight
+            ? 'bg-white border-black shadow-lg'
+            : 'bg-black bg-opacity-90 border-[#6e6aff] border-opacity-50'
+        }`}>
+          <p className={`text-sm mb-2 ${isLight ? 'text-black' : 'text-white'}`}>{`Date: ${label}`}</p>
           <p className="text-[#6e6aff] text-sm">
             {`Yield: $${payload[0].value.toLocaleString()}`}
           </p>
           {payload[0].payload.apy && (
-            <p className="text-white text-opacity-60 text-xs">
+            <p className={`text-xs ${isLight ? 'text-black text-opacity-60' : 'text-white text-opacity-60'}`}>
               {`APY: ${payload[0].payload.apy.toFixed(2)}%`}
             </p>
           )}
@@ -87,24 +95,24 @@ const YieldPerformanceChart: React.FC<YieldPerformanceChartProps> = ({
             </filter>
           </defs>
           
-          <CartesianGrid 
-            strokeDasharray="3 3" 
-            stroke="rgba(255,255,255,0.1)"
+          <CartesianGrid
+            strokeDasharray="3 3"
+            stroke={isLight ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)'}
             vertical={false}
           />
-          
-          <XAxis 
-            dataKey="date" 
+
+          <XAxis
+            dataKey="date"
             axisLine={false}
             tickLine={false}
-            tick={{ fill: 'rgba(255,255,255,0.6)', fontSize: 12 }}
+            tick={{ fill: isLight ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.6)', fontSize: 12 }}
             interval="preserveStartEnd"
           />
-          
-          <YAxis 
+
+          <YAxis
             axisLine={false}
             tickLine={false}
-            tick={{ fill: 'rgba(255,255,255,0.6)', fontSize: 12 }}
+            tick={{ fill: isLight ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.6)', fontSize: 12 }}
             tickFormatter={formatYAxis}
           />
           

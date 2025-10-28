@@ -2,13 +2,15 @@ import React, { useState, useMemo } from 'react';
 import { Clock, ArrowUpRight, ArrowDownLeft, Filter } from 'lucide-react';
 
 interface MintHistoryEntry {
-  id: string;
+  id?: string;
   timestamp: number;
   type: 'MINT' | 'REDEEM';
-  algoAmount: number;
+  algoAmount?: number; // Deprecated - use collateralAmount
+  collateralAmount?: number; // New field name
   hstrkAmount: number;
   ratio: number;
   txHash?: string;
+  transactionHash?: string; // Alternative field name
   status: 'completed' | 'pending' | 'failed';
 }
 
@@ -17,8 +19,9 @@ interface MintHistoryProps {
   isLoading?: boolean;
 }
 
-const formatAmount = (amount: number, decimals: number = 6): string => {
-  return (amount / Math.pow(10, decimals)).toFixed(4);
+const formatAmount = (amount: number, decimals: number = 18): string => {
+  if (isNaN(amount) || amount === null || amount === undefined) return '0.00';
+  return (amount / Math.pow(10, decimals)).toFixed(2);
 };
 
 const formatTimeAgo = (timestamp: number): string => {
@@ -39,60 +42,36 @@ const MintHistory: React.FC<MintHistoryProps> = ({ transactions, isLoading = fal
   const [filter, setFilter] = useState<'ALL' | 'MINT' | 'REDEEM'>('ALL');
   const [showAll, setShowAll] = useState(false);
 
-  // Generate sample transactions when no real data exists
-  const sampleTransactions: MintHistoryEntry[] = React.useMemo(() => {
-    if (transactions.length > 0) return [];
-
-    const now = Date.now();
-    const samples: MintHistoryEntry[] = [];
-
-    for (let i = 0; i < 12; i++) {
-      const timestamp = now - i * 2 * 60 * 60 * 1000; // Every 2 hours
-      const isMint = Math.random() > 0.4; // 60% mint, 40% redeem
-      const algoAmount = (50 + Math.random() * 200) * 1_000_000; // 50-250 STRK
-      const ratio = 0.998 + Math.random() * 0.004; // 0.998-1.002
-      const hstrkAmount = algoAmount * ratio;
-
-      samples.push({
-        id: `sample-${i}`,
-        timestamp: timestamp,
-        type: isMint ? 'MINT' : 'REDEEM',
-        algoAmount: algoAmount,
-        hstrkAmount: hstrkAmount,
-        ratio: ratio,
-        txHash: `SAMPLE${Math.random().toString(36).substring(2, 15).toUpperCase()}`,
-        status: 'completed'
-      });
-    }
-
-    return samples;
-  }, [transactions.length]);
-
-  const allTransactions = transactions.length > 0 ? transactions : sampleTransactions;
+  // Use only real transactions - no mock data
+  const allTransactions = transactions;
 
   const filteredTransactions = useMemo(() => {
-    let filtered = allTransactions;
-    
+    // Create a copy to avoid mutating original array
+    let filtered = [...allTransactions];
+
     if (filter !== 'ALL') {
       filtered = filtered.filter(tx => tx.type === filter);
     }
-    
-    // Sort by timestamp (newest first)
-    filtered = filtered.sort((a, b) => b.timestamp - a.timestamp);
-    
+
+    // Sort by timestamp (newest first) - sort mutates array, so we already copied above
+    filtered.sort((a, b) => b.timestamp - a.timestamp);
+
     // Limit to 10 items unless showAll is true
     if (!showAll) {
       filtered = filtered.slice(0, 10);
     }
-    
+
     return filtered;
   }, [allTransactions, filter, showAll]);
 
   const stats = useMemo(() => {
     const totalMints = allTransactions.filter(tx => tx.type === 'MINT').length;
     const totalRedeems = allTransactions.filter(tx => tx.type === 'REDEEM').length;
-    const totalVolume = allTransactions.reduce((sum, tx) => sum + tx.algoAmount, 0);
-    
+    const totalVolume = allTransactions.reduce((sum, tx) => {
+      const amount = tx.collateralAmount || tx.algoAmount || 0;
+      return sum + amount;
+    }, 0);
+
     return {
       totalMints,
       totalRedeems,
@@ -166,76 +145,83 @@ const MintHistory: React.FC<MintHistoryProps> = ({ transactions, isLoading = fal
             </div>
           </div>
         ) : (
-          filteredTransactions.map((tx) => (
-            <div
-              key={tx.id}
-              className="bg-gray-50 border border-black rounded-lg p-4 hover:bg-gray-100 transition-colors"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className={`p-2 rounded-lg ${
-                    tx.type === 'MINT' 
-                      ? 'bg-green-100 border border-green-300' 
-                      : 'bg-red-100 border border-red-300'
-                  }`}>
-                    {tx.type === 'MINT' ? (
-                      <ArrowUpRight className="text-green-600" size={16} />
-                    ) : (
-                      <ArrowDownLeft className="text-red-600" size={16} />
-                    )}
+          filteredTransactions.map((tx, index) => {
+            const collateralAmount = tx.collateralAmount || tx.algoAmount || 0;
+            const txHash = tx.txHash || tx.transactionHash;
+            // Use timestamp + index for unique key to avoid duplicates
+            const txId = tx.id || (txHash ? `${txHash}-${tx.timestamp}` : `tx-${tx.timestamp}-${index}`);
+
+            return (
+              <div
+                key={txId}
+                className="bg-gray-50 border border-black rounded-lg p-4 hover:bg-gray-100 transition-colors"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className={`p-2 rounded-lg ${
+                      tx.type === 'MINT'
+                        ? 'bg-green-100 border border-green-300'
+                        : 'bg-red-100 border border-red-300'
+                    }`}>
+                      {tx.type === 'MINT' ? (
+                        <ArrowUpRight className="text-green-600" size={16} />
+                      ) : (
+                        <ArrowDownLeft className="text-red-600" size={16} />
+                      )}
+                    </div>
+                    <div>
+                      <div className="text-black text-sm font-medium">
+                        {tx.type === 'MINT' ? 'Minted' : 'Redeemed'}
+                      </div>
+                      <div className="text-black text-opacity-60 text-xs">
+                        {formatTimeAgo(tx.timestamp)}
+                      </div>
+                    </div>
                   </div>
-                  <div>
+
+                  <div className="text-right">
                     <div className="text-black text-sm font-medium">
-                      {tx.type === 'MINT' ? 'Minted' : 'Redeemed'}
+                      {tx.type === 'MINT'
+                        ? `+${formatAmount(tx.hstrkAmount)} hSTRK`
+                        : `+${formatAmount(collateralAmount)} STRK`
+                      }
                     </div>
                     <div className="text-black text-opacity-60 text-xs">
-                      {formatTimeAgo(tx.timestamp)}
+                      {tx.type === 'MINT'
+                        ? `${formatAmount(collateralAmount)} STRK`
+                        : `${formatAmount(tx.hstrkAmount)} hSTRK`
+                      }
                     </div>
                   </div>
-                </div>
-                
-                <div className="text-right">
-                  <div className="text-black text-sm font-medium">
-                    {tx.type === 'MINT' 
-                      ? `+${formatAmount(tx.hstrkAmount)} hSTRK`
-                      : `+${formatAmount(tx.algoAmount)} STRK`
-                    }
+
+                  <div className="text-right">
+                    <div className="text-black text-opacity-60 text-xs">Ratio</div>
+                    <div className="text-black text-sm font-medium">
+                      {(tx.ratio || 1.0).toFixed(4)}
+                    </div>
                   </div>
-                  <div className="text-black text-opacity-60 text-xs">
-                    {tx.type === 'MINT' 
-                      ? `${formatAmount(tx.algoAmount)} STRK`
-                      : `${formatAmount(tx.hstrkAmount)} hSTRK`
-                    }
-                  </div>
-                </div>
-                
-                <div className="text-right">
-                  <div className="text-black text-opacity-60 text-xs">Ratio</div>
-                  <div className="text-black text-sm font-medium">
-                    {tx.ratio.toFixed(4)}
+
+                  <div className={`px-2 py-1 rounded text-xs font-medium ${
+                    tx.status === 'completed'
+                      ? 'bg-green-100 text-green-800 border border-green-300'
+                      : tx.status === 'pending'
+                      ? 'bg-yellow-100 text-yellow-800 border border-yellow-300'
+                      : 'bg-red-100 text-red-800 border border-red-300'
+                  }`}>
+                    {tx.status}
                   </div>
                 </div>
-                
-                <div className={`px-2 py-1 rounded text-xs font-medium ${
-                  tx.status === 'completed' 
-                    ? 'bg-green-100 text-green-800 border border-green-300'
-                    : tx.status === 'pending'
-                    ? 'bg-yellow-100 text-yellow-800 border border-yellow-300'
-                    : 'bg-red-100 text-red-800 border border-red-300'
-                }`}>
-                  {tx.status}
-                </div>
+
+                {txHash && (
+                  <div className="mt-2 pt-2 border-t border-black border-opacity-10">
+                    <div className="text-black text-opacity-60 text-xs">
+                      Tx: {txHash.substring(0, 8)}...{txHash.substring(txHash.length - 8)}
+                    </div>
+                  </div>
+                )}
               </div>
-              
-              {tx.txHash && (
-                <div className="mt-2 pt-2 border-t border-black border-opacity-10">
-                  <div className="text-black text-opacity-60 text-xs">
-                    Tx: {tx.txHash.substring(0, 8)}...{tx.txHash.substring(-8)}
-                  </div>
-                </div>
-              )}
-            </div>
-          ))
+            );
+          })
         )}
       </div>
 

@@ -84,7 +84,8 @@ interface AnalyticsStats {
 // Enterprise Analytics Component
 const EnterpriseAnalytics: React.FC = () => {
   const { metrics, loading: metricsLoading, error: metricsError } = useProtocolStats(30000);
-  const { tvlHistory, userMetrics, loading: analyticsLoading, timeRange, setTimeRange } = useAnalytics('30d');
+  const { userMetrics, loading: analyticsLoading, timeRange, setTimeRange } = useAnalytics('30d');
+  const { transactionHistory } = useStarknetHSTRK();
   const [strkPrice, setStrkPrice] = useState<number>(0);
 
   React.useEffect(() => {
@@ -120,20 +121,44 @@ const EnterpriseAnalytics: React.FC = () => {
     };
   }, [metrics, strkPrice]);
 
+  // TVL Chart Data from transaction history (same as Dashboard)
   const tvlChartData: ChartDataPoint[] = React.useMemo(() => {
-    return tvlHistory.map(point => ({
-      date: point.date,
-      value: point.value * strkPrice
-    }));
-  }, [tvlHistory, strkPrice]);
+    if (!transactionHistory || transactionHistory.length === 0) {
+      console.log('📊 Analytics TVL Chart: No transaction history');
+      return [];
+    }
+
+    let cumulativeTVL = 0;
+    const chartData = transactionHistory.map((tx: any) => {
+      const amount = parseFloat(tx.collateralAmount || '0') / 1e18;
+      if (tx.type === 'MINT') {
+        cumulativeTVL += amount;
+      } else if (tx.type === 'REDEEM') {
+        cumulativeTVL -= amount;
+      }
+      return {
+        date: new Date(tx.timestamp || Date.now()).toLocaleDateString(),
+        value: cumulativeTVL * strkPrice
+      };
+    }).slice(-30);
+
+    console.log('📊 Analytics TVL Chart Data:', {
+      transactionCount: transactionHistory.length,
+      strkPrice,
+      chartDataLength: chartData.length,
+      sampleData: chartData.slice(0, 3)
+    });
+
+    return chartData;
+  }, [transactionHistory, strkPrice]);
 
   const tvlChange = React.useMemo(() => {
-    if (tvlHistory.length < 2) return 0;
-    const oldValue = tvlHistory[0].value;
-    const newValue = tvlHistory[tvlHistory.length - 1].value;
+    if (tvlChartData.length < 2) return 0;
+    const oldValue = tvlChartData[0].value;
+    const newValue = tvlChartData[tvlChartData.length - 1].value;
     if (oldValue === 0) return 0;
     return ((newValue - oldValue) / oldValue) * 100;
-  }, [tvlHistory]);
+  }, [tvlChartData]);
 
   const userChange = React.useMemo(() => {
     if (!userMetrics) return 0;
@@ -203,7 +228,11 @@ const EnterpriseAnalytics: React.FC = () => {
           <div className="bg-white backdrop-blur-sm p-6 border border-black rounded-2xl shadow-lg">
             <h3 className="text-xl font-normal text-black mb-4">TVL History</h3>
             {tvlChartData.length > 0 ? (
-              <TVLChart data={tvlChartData} />
+              <TVLChart
+                data={tvlChartData}
+                theme="light"
+                height={260}
+              />
             ) : (
               <div className="text-black text-opacity-60">No TVL data available yet</div>
             )}
@@ -262,6 +291,9 @@ const LandingPage: React.FC<LandingPageProps> = () => {
   const { address, isConnected, disconnect: disconnectFn } = useWallet();
   const user = address ? { address } : null;
 
+  // Use real blockchain data
+  const { balances, transactionHistory } = useStarknetHSTRK();
+
   // Wrap disconnect to handle onClick properly
   const disconnect = React.useCallback(() => {
     disconnectFn();
@@ -274,15 +306,36 @@ const LandingPage: React.FC<LandingPageProps> = () => {
   const [withdrawAmount, setWithdrawAmount] = useState('');
   const [processingTransaction, setProcessingTransaction] = useState(false);
 
-  // Mock data - memoized to prevent re-renders
-  const portfolio = React.useMemo<PortfolioData>(() => ({
-    totalValue: 0,
-    totalDeposited: 0,
-    totalYield: 0
-  }), []);
+  // STRK price (mock for now - could be fetched from oracle)
+  const strkPrice = 0.5; // $0.50 per STRK
+
+  // Calculate portfolio metrics from real blockchain data
+  const portfolio = React.useMemo<PortfolioData>(() => {
+    if (!isConnected) {
+      return {
+        totalValue: 0,
+        totalDeposited: 0,
+        totalYield: 0
+      };
+    }
+
+    const strkBalance = Number(balances.strk) / 1e18;
+    const hstrkBalance = Number(balances.hstrk) / 1e18;
+    const collateralBalance = Number(balances.collateral) / 1e18;
+
+    const totalValue = (strkBalance + hstrkBalance + collateralBalance) * strkPrice;
+    const totalDeposited = collateralBalance * strkPrice;
+    const totalYield = hstrkBalance * strkPrice - totalDeposited;
+
+    return {
+      totalValue,
+      totalDeposited,
+      totalYield
+    };
+  }, [balances, strkPrice, isConnected]);
 
   const yieldPerformanceData = React.useMemo<ChartDataPoint[]>(() => [], []);
-  const transactions = React.useMemo<Transaction[]>(() => [], []);
+  const transactions = React.useMemo<Transaction[]>(() => transactionHistory || [], [transactionHistory]);
   const portfolioLoading = false;
 
   const stats = React.useMemo<LandingStats>(() => ({
@@ -686,7 +739,10 @@ const EnterpriseDashboard: React.FC = () => {
 
   // Generate chart data from transaction history
   const yieldPerformanceData = React.useMemo<ChartDataPoint[]>(() => {
-    if (!transactionHistory || transactionHistory.length === 0) return [];
+    if (!transactionHistory || transactionHistory.length === 0) {
+      console.log('📊 Dashboard Yield Performance: No transaction history');
+      return [];
+    }
 
     // Calculate total yield from current position
     const currentYield = portfolio.totalYield;
@@ -694,7 +750,7 @@ const EnterpriseDashboard: React.FC = () => {
     // Distribute yield across transactions proportionally
     const totalTransactions = transactionHistory.length;
 
-    return transactionHistory.map((tx: any, index: number) => {
+    const chartData = transactionHistory.map((tx: any, index: number) => {
       // Progressive yield accumulation
       // Earlier transactions have less yield, later ones have more
       const progressRatio = (index + 1) / totalTransactions;
@@ -705,6 +761,15 @@ const EnterpriseDashboard: React.FC = () => {
         value: accumulatedYield
       };
     }).slice(-30);
+
+    console.log('📊 Dashboard Yield Performance Data:', {
+      transactionCount: transactionHistory.length,
+      currentYield,
+      chartDataPoints: chartData.length,
+      sampleData: chartData.slice(0, 3)
+    });
+
+    return chartData;
   }, [transactionHistory, portfolio.totalYield]);
 
   // TVL history from user's perspective
@@ -855,7 +920,11 @@ const EnterpriseDashboard: React.FC = () => {
           <div className="bg-white backdrop-blur-sm p-6 border border-black rounded-2xl shadow-lg">
             <h3 className="text-xl font-normal text-black mb-4">Yield Performance</h3>
             {yieldPerformanceData ? (
-              <YieldPerformanceChart data={yieldPerformanceData} />
+              <YieldPerformanceChart
+                data={yieldPerformanceData}
+                theme="light"
+                height={260}
+              />
             ) : (
               <div className="text-black text-opacity-60">No data available</div>
             )}
@@ -863,7 +932,11 @@ const EnterpriseDashboard: React.FC = () => {
           <div className="bg-white backdrop-blur-sm p-6 border border-black rounded-2xl shadow-lg">
             <h3 className="text-xl font-normal text-black mb-4">TVL History</h3>
             {tvlHistory ? (
-              <TVLChart data={tvlHistory} />
+              <TVLChart
+                data={tvlHistory}
+                theme="light"
+                height={260}
+              />
             ) : (
               <div className="text-black text-opacity-60">No data available</div>
             )}

@@ -75,49 +75,16 @@ const MintChart: React.FC<MintChartProps> = ({ mintHistory, currentRatio }) => {
     if (realTimeData.length > 0) {
       return realTimeData;
     }
+
+    // Process real mint history data only - no mock data
     if (!mintHistory || mintHistory.length === 0) {
-      // Generate realistic sample data for demonstration when no real data exists
-      const now = Date.now();
-      const sampleData: ChartDataPoint[] = [];
-
-      // Simulate realistic hSTRK mint ratio fluctuations
-      let cumulativeStrk = 0;
-      let cumulativeHstrk = 0;
-
-      for (let i = 0; i < 48; i++) { // Last 48 hours for more data points
-        const timestamp = now - (47 - i) * 30 * 60 * 1000; // Every 30 minutes
-
-        // Base ratio around 1.0 with realistic market fluctuations
-        const baseRatio = 1.0;
-        const marketTrend = Math.sin(i * 0.1) * 0.005; // Long-term trend
-        const volatility = (Math.random() - 0.5) * 0.002; // Short-term volatility
-        const ratio = Math.max(0.995, Math.min(1.005, baseRatio + marketTrend + volatility));
-
-        // Simulate trading activity
-        const tradingVolume = 50 + Math.random() * 100; // 50-150 STRK per period
-        cumulativeStrk += tradingVolume;
-        cumulativeHstrk += tradingVolume * ratio;
-
-        sampleData.push({
-          time: new Date(timestamp).toLocaleTimeString('en-US', {
-            hour: '2-digit',
-            minute: '2-digit'
-          }),
-          ratio: ratio,
-          cumulativeStrk: cumulativeStrk,
-          cumulativeHstrk: cumulativeHstrk,
-          timestamp: timestamp
-        });
-      }
-
-      return sampleData;
+      return [];
     }
 
-    // Process real mint history data
     return mintHistory.map((entry) => ({
-      time: new Date(entry.timestamp).toLocaleTimeString('en-US', { 
-        hour: '2-digit', 
-        minute: '2-digit' 
+      time: new Date(entry.timestamp).toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit'
       }),
       ratio: entry.ratio,
       cumulativeStrk: entry.cumulativeStrk,
@@ -135,6 +102,20 @@ const MintChart: React.FC<MintChartProps> = ({ mintHistory, currentRatio }) => {
 
   const isPositive = change24h >= 0;
 
+  // Show empty state if no data
+  if (chartData.length === 0) {
+    return (
+      <div className="bg-white border border-black rounded-3xl p-8 shadow-lg">
+        <div className="h-96 flex items-center justify-center">
+          <div className="text-center">
+            <div className="text-black text-opacity-60 text-lg mb-2">No Transaction Data</div>
+            <div className="text-black text-opacity-40 text-sm">Start minting to see your performance chart</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white border border-black rounded-3xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
       {/* Header with large value display */}
@@ -151,7 +132,7 @@ const MintChart: React.FC<MintChartProps> = ({ mintHistory, currentRatio }) => {
           </div>
         </div>
       </div>
-      
+
       <div className="h-96 w-full bg-white rounded-2xl p-6 mb-6">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart

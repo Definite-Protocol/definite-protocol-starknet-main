@@ -150,7 +150,19 @@ class StarknetHstrkServiceNew {
         }
 
         // Get collateral from vault
-        const collateralBalance = BigInt(0); // TODO: Query vault
+        let collateralBalance = BigInt(0);
+        try {
+          if (this.vaultContract) {
+            // Query user's deposited collateral in vault
+            const collateralResult = await this.vaultContract.call('get_user_collateral', [userAddress]);
+            collateralBalance = collateralResult as bigint;
+            logger.info('Collateral balance fetched:', collateralBalance);
+          }
+        } catch (vaultError) {
+          logger.warn('Failed to fetch collateral balance:', vaultError);
+          // Fallback: use hSTRK balance as collateral estimate (1:1 ratio)
+          collateralBalance = hstrkBalance;
+        }
 
         const balances: Balances = {
           strk: strkBalance,
@@ -720,6 +732,18 @@ class StarknetHstrkServiceNew {
       const transactions = storedTxs ? JSON.parse(storedTxs) : [];
 
       console.log('💾 Existing transactions', { count: transactions.length });
+
+      // Check for duplicate transaction hash
+      const isDuplicate = transactions.some((tx: any) =>
+        tx.transactionHash === transaction.transactionHash
+      );
+
+      if (isDuplicate) {
+        console.log('💾 Duplicate transaction detected, skipping save', {
+          transactionHash: transaction.transactionHash
+        });
+        return;
+      }
 
       const newTx = {
         ...transaction,

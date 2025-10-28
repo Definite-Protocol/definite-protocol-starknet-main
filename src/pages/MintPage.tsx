@@ -11,10 +11,10 @@ import mintBackground from '../assets/mint-2.png';
 import background2Image from '../assets/background-2.png';
 
 // Import components
-import MintChart from '../components/MintChart';
 import MintHistory from '../components/MintHistory';
 import ChainSwitcher from '../components/ChainSwitcher';
 import ChipiPayModal from '../components/ChipiPayModal';
+import TVLChart from '../components/TVLChart';
 
 interface MintPageProps {
   // No longer needed with React Router
@@ -90,6 +90,68 @@ const MintPage: React.FC<MintPageProps> = () => {
   const tabs = ['MINT', 'REDEEM', 'DETAILS'];
   const config = getProtocolConfig();
 
+  // STRK price (mock for now - could be fetched from oracle)
+  const strkPrice = 0.5; // $0.50 per STRK
+
+  // Calculate portfolio metrics from real blockchain data (same as Dashboard)
+  const portfolio = React.useMemo(() => {
+    const strkBalance = Number(balances.strk) / 1e18;
+    const hstrkBalance = Number(balances.hstrk) / 1e18;
+    const collateralBalanceNum = Number(balances.collateral) / 1e18;
+
+    const totalValue = (strkBalance + hstrkBalance + collateralBalanceNum) * strkPrice;
+    const totalDeposited = collateralBalanceNum * strkPrice;
+    const totalYield = hstrkBalance * strkPrice - totalDeposited;
+
+    return {
+      totalValue,
+      totalDeposited,
+      totalYield
+    };
+  }, [balances, strkPrice]);
+
+  // Prepare yield performance data (same as Dashboard)
+  const yieldPerformanceData = React.useMemo(() => {
+    if (!transactionHistory || transactionHistory.length === 0) return [];
+
+    // Calculate total yield from current position
+    const currentYield = portfolio.totalYield;
+
+    // Distribute yield across transactions proportionally
+    const totalTransactions = transactionHistory.length;
+
+    return transactionHistory.map((tx: any, index: number) => {
+      // Progressive yield accumulation
+      // Earlier transactions have less yield, later ones have more
+      const progressRatio = (index + 1) / totalTransactions;
+      const accumulatedYield = currentYield * progressRatio;
+
+      return {
+        date: new Date(tx.timestamp || Date.now()).toLocaleDateString(),
+        value: accumulatedYield
+      };
+    }).slice(-30); // Last 30 transactions
+  }, [transactionHistory, portfolio.totalYield]);
+
+  // TVL history from user's perspective (same as Dashboard)
+  const tvlHistory = React.useMemo(() => {
+    if (!transactionHistory || transactionHistory.length === 0) return [];
+
+    let cumulativeTVL = 0;
+    return transactionHistory.map((tx: any) => {
+      const amount = parseFloat(tx.collateralAmount || '0') / 1e18;
+      if (tx.type === 'MINT') {
+        cumulativeTVL += amount;
+      } else if (tx.type === 'REDEEM') {
+        cumulativeTVL -= amount;
+      }
+      return {
+        date: new Date(tx.timestamp || Date.now()).toLocaleDateString(),
+        value: cumulativeTVL * strkPrice
+      };
+    }).slice(-30); // Last 30 transactions
+  }, [transactionHistory, strkPrice]);
+
   // Update quotes when amounts change
   useEffect(() => {
     if (activeTab === 'MINT' && depositAmount) {
@@ -134,22 +196,26 @@ const MintPage: React.FC<MintPageProps> = () => {
     let cumulativeHstrk = 0;
 
     const chartData = allTransactions.map((tx) => {
-      const algoAmount = typeof tx.algoAmount === 'string' ? parseFloat(tx.algoAmount) : tx.algoAmount;
-      const hstrkAmount = typeof tx.hstrkAmount === 'string' ? parseFloat(tx.hstrkAmount) : tx.hstrkAmount;
+      // Use collateralAmount (new field name) with fallback to algoAmount (old field name)
+      const collateralAmount = tx.collateralAmount || tx.algoAmount || 0;
+      const parsedCollateral = typeof collateralAmount === 'string' ? parseFloat(collateralAmount) : collateralAmount;
+
+      const hstrkAmount = tx.hstrkAmount || 0;
+      const parsedHstrk = typeof hstrkAmount === 'string' ? parseFloat(hstrkAmount) : hstrkAmount;
 
       if (tx.type === 'MINT') {
-        cumulativeStrk += algoAmount;
-        cumulativeHstrk += hstrkAmount;
+        cumulativeStrk += parsedCollateral;
+        cumulativeHstrk += parsedHstrk;
       } else {
-        cumulativeStrk -= hstrkAmount; // When redeeming, we get back STRK
-        cumulativeHstrk -= algoAmount; // When redeeming, we give hSTRK
+        cumulativeStrk -= parsedHstrk; // When redeeming, we get back STRK
+        cumulativeHstrk -= parsedCollateral; // When redeeming, we give hSTRK
       }
 
       return {
         timestamp: tx.timestamp,
-        algoAmount: algoAmount,
-        hstrkAmount: hstrkAmount,
-        ratio: tx.ratio,
+        algoAmount: parsedCollateral, // Keep for backward compatibility
+        hstrkAmount: parsedHstrk,
+        ratio: tx.ratio || 1.0,
         cumulativeStrk: cumulativeStrk / 1e18, // Convert to STRK
         cumulativeHstrk: cumulativeHstrk / 1e18 // Convert to hSTRK
       };
@@ -557,32 +623,25 @@ const MintPage: React.FC<MintPageProps> = () => {
               </div>
             </div>
 
-            {/* Demo Mode Notice */}
-            <div className="bg-white border border-blue-500 rounded-lg p-4 shadow-lg">
-              <div className="flex items-center space-x-3">
-                <Info className="text-blue-600" size={20} />
-                <div>
-                  <div className="text-black font-medium">Demo Mode Active</div>
-                  <div className="text-black text-opacity-80 text-sm">
-                    Transactions are simulated using localStorage. Real blockchain integration available.
+            {/* TVL History Chart */}
+            <div className="bg-white border border-black rounded-3xl p-6 shadow-lg mb-6">
+              <h3 className="text-xl font-medium text-black mb-4">TVL History</h3>
+              {tvlHistory && tvlHistory.length > 0 ? (
+                <TVLChart
+                  data={tvlHistory}
+                  theme="light"
+                  height={300}
+                  title="Total Value Locked"
+                />
+              ) : (
+                <div className="h-64 flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="text-black text-opacity-60 text-lg mb-2">No Data Available</div>
+                    <div className="text-black text-opacity-40 text-sm">Start minting to see your TVL history</div>
                   </div>
                 </div>
-              </div>
-              <div className="mt-3 text-xs text-black text-opacity-60">
-                To initialize the protocol: Open browser console and run <code className="bg-gray-200 text-black px-1 rounded">ProtocolInitializer.initialize()</code>
-              </div>
+              )}
             </div>
-
-            {/* Mint Performance Chart */}
-            {(() => {
-              const historyData = processTransactionHistory();
-              return (
-                <MintChart
-                  mintHistory={historyData.chartData}
-                  currentRatio={historyData.currentRatio}
-                />
-              );
-            })()}
 
             {/* Transaction History */}
             {(() => {
@@ -924,16 +983,22 @@ const MintPage: React.FC<MintPageProps> = () => {
             {/* Right Column - Chart */}
             <div className="space-y-6">
               <div className="bg-white border border-black rounded-3xl p-6 shadow-lg">
-                <h3 className="text-xl font-medium text-black mb-4">Mint History Chart</h3>
-                {(() => {
-                  const historyData = processTransactionHistory();
-                  return (
-                    <MintChart
-                      mintHistory={historyData.chartData}
-                      currentRatio={historyData.currentRatio}
-                    />
-                  );
-                })()}
+                <h3 className="text-xl font-medium text-black mb-4">TVL History</h3>
+                {tvlHistory && tvlHistory.length > 0 ? (
+                  <TVLChart
+                    data={tvlHistory}
+                    theme="light"
+                    height={300}
+                    title="Total Value Locked"
+                  />
+                ) : (
+                  <div className="h-64 flex items-center justify-center">
+                    <div className="text-center">
+                      <div className="text-black text-opacity-60 text-lg mb-2">No Data Available</div>
+                      <div className="text-black text-opacity-40 text-sm">Start minting to see your TVL history</div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
