@@ -919,9 +919,8 @@ const MintPage: React.FC<MintPageProps> = () => {
           </div>
 
           {(() => {
-            // TODO: Implement transaction history from Starknet events
-            const history = { mints: [], redeems: [] };
-            const relevantHistory = activeTab === 'MINT' ? history.mints : history.redeems;
+            // Filter transaction history by active tab
+            const relevantHistory = transactionHistory.filter((tx: any) => tx.type === activeTab);
 
             if (relevantHistory.length === 0) {
               return (
@@ -934,39 +933,50 @@ const MintPage: React.FC<MintPageProps> = () => {
               );
             }
 
+            // Sort by timestamp (newest first) and take first 5
+            const sortedHistory = [...relevantHistory].sort((a: any, b: any) => b.timestamp - a.timestamp).slice(0, 5);
+
             return (
               <div className="space-y-3">
-                {relevantHistory.slice(0, 5).map((tx: Record<string, unknown>, index: number) => (
-                  <div key={index} className="bg-white border border-black rounded-lg p-3 shadow-lg">
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                        <div>
-                          <div className="text-sm text-black">
-                            {activeTab === 'MINT'
-                              ? `Minted ${formatAmount(Number(tx.hstrkAmount) || 0)} hSTRK`
-                              : `Redeemed ${formatAmount(Number(tx.collateralAmount) || 0)} STRK`
+                {sortedHistory.map((tx: any, index: number) => {
+                  const collateralAmount = tx.collateralAmount || tx.algoAmount || '0';
+                  const parsedCollateral = typeof collateralAmount === 'string' ? parseFloat(collateralAmount) : collateralAmount;
+                  const hstrkAmount = tx.hstrkAmount || '0';
+                  const parsedHstrk = typeof hstrkAmount === 'string' ? parseFloat(hstrkAmount) : hstrkAmount;
+                  const txHash = tx.txHash || tx.transactionHash || tx.id;
+
+                  return (
+                    <div key={`${txHash}-${tx.timestamp}-${index}`} className="bg-white border border-black rounded-lg p-3 shadow-lg">
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center space-x-3">
+                          <div className={`w-2 h-2 rounded-full ${tx.type === 'MINT' ? 'bg-green-400' : 'bg-red-400'}`}></div>
+                          <div>
+                            <div className="text-sm text-black">
+                              {tx.type === 'MINT'
+                                ? `Minted ${formatAmount(parsedHstrk)} hSTRK`
+                                : `Redeemed ${formatAmount(parsedCollateral)} STRK`
+                              }
+                            </div>
+                            <div className="text-xs text-black text-opacity-60">
+                              {new Date(tx.timestamp).toLocaleDateString()}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-sm text-black text-opacity-80">
+                            {tx.type === 'MINT'
+                              ? `${formatAmount(parsedCollateral)} STRK`
+                              : `${formatAmount(parsedHstrk)} hSTRK`
                             }
                           </div>
-                          <div className="text-xs text-black text-opacity-60">
-                            {new Date(String(tx.timestamp)).toLocaleDateString()}
+                          <div className="text-xs text-gray-500">
+                            {txHash ? String(txHash).substring(0, 8) + '...' : 'N/A'}
                           </div>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-sm text-black text-opacity-80">
-                          {activeTab === 'MINT'
-                            ? `${formatAmount(Number(tx.collateralAmount) || 0)} STRK`
-                            : `${formatAmount(Number(tx.hstrkAmount) || 0)} hSTRK`
-                          }
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          {String(tx.txId).substring(0, 8)}...
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
                 {relevantHistory.length > 5 && (
                   <div className="text-center">
                     <button className="text-black text-sm hover:underline border border-black px-3 py-1 rounded bg-white hover:bg-gray-50">
